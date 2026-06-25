@@ -94,6 +94,7 @@ const Products = () => {
   const [taxCategory, setTaxCategory] = useState<"taxable" | "zero_rated" | "exempt">("taxable");
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [barcode, setBarcode] = useState("");
 
   // New-category input inside the "Manage categories" dialog
   const [pendingNewCategory, setPendingNewCategory] = useState("");
