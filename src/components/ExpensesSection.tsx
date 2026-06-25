@@ -7,8 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+type ExpenseCategory = 'business' | 'personal';
 
 type Expense = {
   id: string;
@@ -16,6 +21,7 @@ type Expense = {
   amount: number;
   expenseDate: string;
   notes: string | null;
+  category: ExpenseCategory;
 };
 
 type ExpensesSectionProps = {
@@ -30,12 +36,14 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+  const [filter, setFilter] = useState<'all' | ExpenseCategory>('all');
+
   // Form state
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [notes, setNotes] = useState('');
+  const [category, setCategory] = useState<ExpenseCategory>('business');
 
   const fetchExpenses = async () => {
     if (!businessId) return;
@@ -46,15 +54,16 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
         .select('*')
         .eq('business_id', businessId)
         .order('expense_date', { ascending: false });
-      
+
       if (error) throw error;
-      
+
       setExpenses((data || []).map((e: any) => ({
         id: e.id,
         name: e.name,
         amount: Number(e.amount),
         expenseDate: e.expense_date,
         notes: e.notes,
+        category: (e.category ?? 'business') as ExpenseCategory,
       })));
     } catch (e) {
       console.error('Failed to fetch expenses:', e);
@@ -69,33 +78,46 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
     }
   }, [businessId, isOnline]);
 
+  const visibleExpenses = useMemo(
+    () => (filter === 'all' ? expenses : expenses.filter(e => e.category === filter)),
+    [expenses, filter]
+  );
+
+  // Totals are computed from business expenses only — personal/outside
+  // expenses do not affect business P&L.
+  const businessExpenses = useMemo(
+    () => expenses.filter(e => e.category === 'business'),
+    [expenses]
+  );
+
   const todayExpenses = useMemo(() => {
     const today = startOfDay(new Date());
     const todayEnd = endOfDay(new Date());
-    return expenses
+    return businessExpenses
       .filter(e => {
         const d = new Date(e.expenseDate);
         return d >= today && d <= todayEnd;
       })
       .reduce((sum, e) => sum + e.amount, 0);
-  }, [expenses]);
+  }, [businessExpenses]);
 
   const monthExpenses = useMemo(() => {
     const monthStart = startOfMonth(new Date());
     const monthEnd = endOfMonth(new Date());
-    return expenses
+    return businessExpenses
       .filter(e => {
         const d = new Date(e.expenseDate);
         return d >= monthStart && d <= monthEnd;
       })
       .reduce((sum, e) => sum + e.amount, 0);
-  }, [expenses]);
+  }, [businessExpenses]);
 
   const resetForm = () => {
     setName('');
     setAmount('');
     setExpenseDate(format(new Date(), 'yyyy-MM-dd'));
     setNotes('');
+    setCategory('business');
   };
 
   const handleSave = async () => {
@@ -112,10 +134,11 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
         amount: Number(amount),
         expense_date: expenseDate,
         notes: notes.trim() || null,
-      });
-      
+        category,
+      } as any);
+
       if (error) throw error;
-      
+
       toast({ title: 'Expense Added' });
       setOpen(false);
       resetForm();
@@ -130,7 +153,7 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this expense?')) return;
-    
+
     try {
       const { error } = await supabase.from('expenses').delete().eq('id', id);
       if (error) throw error;
@@ -150,7 +173,7 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
             <CardTitle className="text-lg flex items-center gap-2">
               <Wallet className="h-5 w-5" /> Expenses
             </CardTitle>
-            <CardDescription>Track business expenses</CardDescription>
+            <CardDescription>Business & personal expenses (totals show business only)</CardDescription>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -163,6 +186,16 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
                 <DialogTitle>Add Expense</DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select value={category} onValueChange={(v) => setCategory(v as ExpenseCategory)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="business">Business expense (in the business)</SelectItem>
+                      <SelectItem value="personal">Personal / outside business</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label>Name</Label>
                   <Input value={name} onChange={e => setName(e.target.value)} placeholder="Rent, Utilities, etc." />
@@ -192,31 +225,44 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
       <CardContent>
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-secondary rounded-lg p-3 text-center">
-            <p className="text-xs text-muted-foreground">Today</p>
+            <p className="text-xs text-muted-foreground">Today (Business)</p>
             <p className="font-bold text-destructive">ZMW {todayExpenses.toFixed(2)}</p>
           </div>
           <div className="bg-secondary rounded-lg p-3 text-center">
-            <p className="text-xs text-muted-foreground">This Month</p>
+            <p className="text-xs text-muted-foreground">This Month (Business)</p>
             <p className="font-bold text-destructive">ZMW {monthExpenses.toFixed(2)}</p>
           </div>
         </div>
-        
+
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="mb-3">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="business">Business</TabsTrigger>
+            <TabsTrigger value="personal">Personal</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         {loading ? (
           <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
-        ) : expenses.length === 0 ? (
+        ) : visibleExpenses.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">No expenses recorded.</p>
         ) : (
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {expenses.slice(0, 10).map(exp => (
+            {visibleExpenses.slice(0, 10).map(exp => (
               <div key={exp.id} className="flex items-center justify-between bg-secondary rounded-lg p-2">
-                <div>
-                  <p className="font-medium text-sm">{exp.name}</p>
-                  <p className="text-xs text-muted-foreground">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm truncate">{exp.name}</p>
+                    <Badge variant={exp.category === 'business' ? 'default' : 'outline'} className="text-[10px] py-0 px-1.5">
+                      {exp.category === 'business' ? 'Business' : 'Personal'}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">
                     {format(new Date(exp.expenseDate), 'MMM d, yyyy')}
                     {exp.notes && ` • ${exp.notes}`}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className="font-bold text-destructive">-ZMW {exp.amount.toFixed(2)}</span>
                   <Button variant="ghost" size="sm" onClick={() => handleDelete(exp.id)} disabled={!isOnline}>
                     <Trash2 className="h-4 w-4" />
