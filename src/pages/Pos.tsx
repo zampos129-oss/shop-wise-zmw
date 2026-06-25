@@ -23,6 +23,7 @@ import { useBusinessType } from "@/hooks/useBusinessType";
 import { saveOfflineSale, updateCachedProductStock, generateOfflineId, clearCart, getCart, saveCartItem, removeCartItem } from "@/lib/offlineStorage";
 import { calculateTax, TaxCategory } from "@/lib/tax";
 import { supabase } from "@/integrations/supabase/client";
+import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 
 type CartLine = { 
   productId: string; 
