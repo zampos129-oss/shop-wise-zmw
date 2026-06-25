@@ -692,6 +692,17 @@ const Products = () => {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label>Barcode (optional)</Label>
+              <Input
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+                placeholder="Scan or type barcode / SKU"
+                data-scanner-target="true"
+              />
+            </div>
+
+
             {labels.showStock && (!editing || !(variantsByParent[editing.id]?.length)) && (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
