@@ -149,6 +149,7 @@ const Products = () => {
     setTaxCategory("taxable");
     setImagePath(null);
     setImageUrl(null);
+    setBarcode("");
     setEditing(null);
   };
 
@@ -169,6 +170,7 @@ const Products = () => {
     setTaxCategory(p.taxCategory || "taxable");
     setImagePath(p.imagePath);
     setImageUrl(p.imageUrl);
+    setBarcode(p.barcode ?? "");
     setOpen(true);
   };
 
@@ -229,6 +231,7 @@ const Products = () => {
         category: categoryValue,
         tax_category: taxCategory,
         image_url: imagePath,
+        barcode: barcode.trim() || null,
       };
 
       if (editing) {
