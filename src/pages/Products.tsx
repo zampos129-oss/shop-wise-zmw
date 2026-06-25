@@ -94,6 +94,7 @@ const Products = () => {
   const [taxCategory, setTaxCategory] = useState<"taxable" | "zero_rated" | "exempt">("taxable");
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [barcode, setBarcode] = useState("");
 
   // New-category input inside the "Manage categories" dialog
   const [pendingNewCategory, setPendingNewCategory] = useState("");
@@ -148,6 +149,7 @@ const Products = () => {
     setTaxCategory("taxable");
     setImagePath(null);
     setImageUrl(null);
+    setBarcode("");
     setEditing(null);
   };
 
@@ -168,6 +170,7 @@ const Products = () => {
     setTaxCategory(p.taxCategory || "taxable");
     setImagePath(p.imagePath);
     setImageUrl(p.imageUrl);
+    setBarcode(p.barcode ?? "");
     setOpen(true);
   };
 
@@ -228,6 +231,7 @@ const Products = () => {
         category: categoryValue,
         tax_category: taxCategory,
         image_url: imagePath,
+        barcode: barcode.trim() || null,
       };
 
       if (editing) {
@@ -687,6 +691,17 @@ const Products = () => {
                 />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label>Barcode (optional)</Label>
+              <Input
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+                placeholder="Scan or type barcode / SKU"
+                data-scanner-target="true"
+              />
+            </div>
+
 
             {labels.showStock && (!editing || !(variantsByParent[editing.id]?.length)) && (
               <div className="grid grid-cols-2 gap-3">

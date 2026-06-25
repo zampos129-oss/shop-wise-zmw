@@ -388,6 +388,7 @@ export type Database = {
         Row: {
           amount: number
           business_id: string
+          category: string
           created_at: string
           expense_date: string
           id: string
@@ -398,6 +399,7 @@ export type Database = {
         Insert: {
           amount: number
           business_id: string
+          category?: string
           created_at?: string
           expense_date?: string
           id?: string
@@ -408,6 +410,7 @@ export type Database = {
         Update: {
           amount?: number
           business_id?: string
+          category?: string
           created_at?: string
           expense_date?: string
           id?: string
@@ -578,6 +581,7 @@ export type Database = {
       }
       products: {
         Row: {
+          barcode: string | null
           business_id: string
           category: string | null
           cost_price: number | null
@@ -595,6 +599,7 @@ export type Database = {
           variant_label: string | null
         }
         Insert: {
+          barcode?: string | null
           business_id: string
           category?: string | null
           cost_price?: number | null
@@ -612,6 +617,7 @@ export type Database = {
           variant_label?: string | null
         }
         Update: {
+          barcode?: string | null
           business_id?: string
           category?: string | null
           cost_price?: number | null

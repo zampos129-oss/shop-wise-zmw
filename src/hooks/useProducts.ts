@@ -16,6 +16,7 @@ export type Product = {
   stock: number;
   minimumStock: number;
   category: string | null;
+  barcode: string | null;
   isActive: boolean;
   taxCategory: 'taxable' | 'zero_rated' | 'exempt';
   imageUrl: string | null;     // resolved signed URL ready for <img src>
@@ -35,6 +36,7 @@ const mapRowToProduct = (row: ProductRow): Product => ({
   stock: Number(row.stock),
   minimumStock: Number(row.minimum_stock ?? 5),
   category: row.category,
+  barcode: (row as any).barcode ?? null,
   isActive: row.is_active,
   taxCategory: (row.tax_category ?? 'taxable') as Product['taxCategory'],
   imageUrl: null,
@@ -54,6 +56,7 @@ const mapCachedProduct = (p: CachedProduct): Product => ({
   stock: Number(p.stock ?? 0),
   minimumStock: Number(p.minimumStock ?? 5),
   category: p.category ?? null,
+  barcode: (p as any).barcode ?? null,
   isActive: p.isActive !== false,
   taxCategory: ((p as any).taxCategory ?? 'taxable') as Product['taxCategory'],
   imageUrl: (p as any).imageUrl ?? null,
