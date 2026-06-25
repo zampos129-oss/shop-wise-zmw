@@ -508,10 +508,11 @@ const Pos = () => {
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="text"
-                        placeholder={`Search by name or category...`}
+                        placeholder={`Search by name, category, or scan barcode...`}
                         className="pl-9"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        data-scanner-target="true"
                       />
                     </div>
                   </CardHeader>
