@@ -161,6 +161,26 @@ const Pos = () => {
     await saveCartItem({ productId, name: displayName, price: p.price ?? 0, quantity: nextQty });
   };
 
+  // Barcode scanner support — works with any USB/Bluetooth keyboard-wedge
+  // scanner. Looks up by exact barcode first, then product id, then name.
+  useBarcodeScanner((code) => {
+    const trimmed = code.trim();
+    if (!trimmed) return;
+    const lower = trimmed.toLowerCase();
+    const match =
+      activeProducts.find((p) => p.barcode && p.barcode.toLowerCase() === lower) ||
+      activeProducts.find((p) => p.id.toLowerCase() === lower) ||
+      activeProducts.find((p) => p.name.toLowerCase() === lower);
+    if (match) {
+      addToCart(match.id);
+    } else {
+      // Fall back to populating the search box so the user sees the code.
+      setSearchQuery(trimmed);
+      toast({ variant: "destructive", title: "Barcode not found", description: trimmed });
+    }
+  }, { enabled: activeTab === "sale" });
+
+
   const decQty = async (productId: string) => {
     const existing = cart.find((l) => l.productId === productId);
     if (!existing) return;
