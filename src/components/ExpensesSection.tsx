@@ -181,7 +181,7 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
             <CardTitle className="text-lg flex items-center gap-2">
               <Wallet className="h-5 w-5" /> Expenses
             </CardTitle>
-            <CardDescription>Business & personal expenses (totals show business only)</CardDescription>
+            <CardDescription>Business expenses & Owner Drawings (both reduce business cash)</CardDescription>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
