@@ -246,14 +246,14 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="business">Business</TabsTrigger>
-            <TabsTrigger value="personal">Personal</TabsTrigger>
+            <TabsTrigger value="personal">Owner Drawings</TabsTrigger>
           </TabsList>
         </Tabs>
 
         {loading ? (
           <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
         ) : visibleExpenses.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No expenses recorded.</p>
+          <p className="text-sm text-muted-foreground text-center py-4">No entries recorded.</p>
         ) : (
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {visibleExpenses.slice(0, 10).map(exp => (
@@ -262,7 +262,7 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-sm truncate">{exp.name}</p>
                     <Badge variant={exp.category === 'business' ? 'default' : 'outline'} className="text-[10px] py-0 px-1.5">
-                      {exp.category === 'business' ? 'Business' : 'Personal'}
+                      {CATEGORY_LABELS[exp.category]}
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground truncate">
