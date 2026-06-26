@@ -345,17 +345,23 @@ const SalesHistory = () => {
     // Only count completed and partially_refunded sales
     const countableSales = monthlyFilteredSales.filter(s => s.status !== 'refunded');
     const refundedSales = monthlyFilteredSales.filter(s => s.status === 'refunded');
-    
+
     const totalRevenue = countableSales.reduce((sum, s) => sum + (s.total || 0), 0);
     const refundedAmount = refundedSales.reduce((sum, s) => sum + (s.total || 0), 0);
-    const totalExpenses = monthlyFilteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const businessExpenses = monthlyFilteredExpenses
+      .filter(e => (e.category ?? 'business') === 'business')
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const ownerDrawings = monthlyFilteredExpenses
+      .filter(e => e.category === 'personal')
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const totalOutflows = businessExpenses + ownerDrawings;
     const totalDiscounts = countableSales.reduce((sum, s) => sum + (s.discountAmount || 0), 0);
-    
+
     // Cash received: PAID sales (cash + mobile) that are NOT credit
     const cashFromSales = countableSales
       .filter(s => s.paymentMethod === 'cash' || s.paymentMethod === 'mobile_money')
       .reduce((sum, s) => sum + (s.total || 0), 0);
-    
+
     // Cash from debtor payments
     const cashFromDebtors = monthlyDebtorPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
     const totalCashReceived = cashFromSales + cashFromDebtors;
@@ -366,17 +372,16 @@ const SalesHistory = () => {
     countableSales.forEach(sale => {
       const saleDiscount = Number(sale.discountAmount) || 0;
       const saleSubtotal = Number(sale.subtotal) || 0;
-      
+
       (sale.items || []).forEach(item => {
         const costPrice = Number(item.costPrice) || 0;
         const sellingPrice = Number(item.price) || 0;
         const qty = Number(item.quantity) || 0;
         const itemTotal = sellingPrice * qty;
-        
-        // Proportionally distribute discount across items
+
         const itemDiscountShare = saleSubtotal > 0 ? (itemTotal / saleSubtotal) * saleDiscount : 0;
         const itemRevenue = itemTotal - itemDiscountShare;
-        
+
         if (costPrice > 0) {
           hasCostData = true;
           const itemCost = costPrice * qty;
@@ -385,23 +390,32 @@ const SalesHistory = () => {
       });
     });
 
-    const netProfit = hasCostData ? totalProfit - totalExpenses : totalRevenue - totalExpenses;
+    // Net Profit subtracts BOTH business expenses AND owner drawings — owner
+    // drawings aren't a true expense in accounting terms, but they reduce
+    // available business cash so business owners need to see them netted out.
+    const netProfit = hasCostData
+      ? totalProfit - totalOutflows
+      : totalRevenue - totalOutflows;
+    const netCashPosition = totalCashReceived - totalOutflows;
 
     const taxCollected = countableSales.reduce((s, x) => s + (Number(x.taxAmount) || 0), 0);
     const taxableSales = countableSales.reduce((s, x) => s + (Number(x.taxableAmount) || 0), 0);
     const zeroRatedSales = countableSales.reduce((s, x) => s + (Number(x.zeroRatedAmount) || 0), 0);
     const exemptSales = countableSales.reduce((s, x) => s + (Number(x.exemptAmount) || 0), 0);
 
-    return { 
-      totalRevenue, 
+    return {
+      totalRevenue,
       refundedAmount,
-      totalExpenses, 
-      totalDiscounts, 
+      totalExpenses: businessExpenses,
+      ownerDrawings,
+      totalOutflows,
+      totalDiscounts,
       totalCashReceived,
       cashFromSales,
       cashFromDebtors,
-      netProfit, 
-      totalProfit, 
+      netProfit,
+      netCashPosition,
+      totalProfit,
       hasCostData,
       transactionCount: countableSales.length,
       refundCount: refundedSales.length,
