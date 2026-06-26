@@ -660,6 +660,8 @@ const SalesHistory = () => {
           </div>
           <p className="text-xs text-muted-foreground">
             {format(new Date(sale.createdAt), "MMM d, yyyy h:mm a")}
+            {sale.cashierName ? ` • Cashier: ${sale.cashierName}` : ''}
+            {sale.paymentMethod ? ` • ${sale.paymentMethod.replace('_', ' ')}` : ''}
             {sale.customerName ? ` • ${sale.customerName}` : ''}
             {sale.customerPhone ? ` • ${sale.customerPhone}` : ''}
           </p>
