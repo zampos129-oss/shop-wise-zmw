@@ -13,7 +13,15 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// 'personal' in the DB now represents Owner Drawings (money the owner takes
+// out for personal use). Both categories reduce available business cash, but
+// only 'business' counts as a business expense in P&L.
 type ExpenseCategory = 'business' | 'personal';
+
+const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  business: 'Business Expense',
+  personal: 'Owner Drawings',
+};
 
 type Expense = {
   id: string;
@@ -173,7 +181,7 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
             <CardTitle className="text-lg flex items-center gap-2">
               <Wallet className="h-5 w-5" /> Expenses
             </CardTitle>
-            <CardDescription>Business & personal expenses (totals show business only)</CardDescription>
+            <CardDescription>Business expenses & Owner Drawings (both reduce business cash)</CardDescription>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -191,8 +199,8 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
                   <Select value={category} onValueChange={(v) => setCategory(v as ExpenseCategory)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="business">Business expense (in the business)</SelectItem>
-                      <SelectItem value="personal">Personal / outside business</SelectItem>
+                      <SelectItem value="business">Business Expense (rent, fuel, stock, salaries…)</SelectItem>
+                      <SelectItem value="personal">Owner Drawings (personal withdrawal)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -238,14 +246,14 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="business">Business</TabsTrigger>
-            <TabsTrigger value="personal">Personal</TabsTrigger>
+            <TabsTrigger value="personal">Owner Drawings</TabsTrigger>
           </TabsList>
         </Tabs>
 
         {loading ? (
           <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
         ) : visibleExpenses.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No expenses recorded.</p>
+          <p className="text-sm text-muted-foreground text-center py-4">No entries recorded.</p>
         ) : (
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {visibleExpenses.slice(0, 10).map(exp => (
@@ -254,7 +262,7 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-sm truncate">{exp.name}</p>
                     <Badge variant={exp.category === 'business' ? 'default' : 'outline'} className="text-[10px] py-0 px-1.5">
-                      {exp.category === 'business' ? 'Business' : 'Personal'}
+                      {CATEGORY_LABELS[exp.category]}
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground truncate">
