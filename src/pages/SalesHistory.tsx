@@ -136,7 +136,7 @@ const SalesHistory = () => {
         // Sales — server-filtered by business + date window, explicit columns, capped.
         let salesQ = supabase
           .from("sales")
-          .select("id, items, subtotal, total, discount_amount, payment_method, created_at, status, tax_amount, taxable_amount, zero_rated_amount, exempt_amount, customer_name, customer_tpin, customer_phone, amount_paid, balance_due, payment_status, due_date")
+          .select("id, items, subtotal, total, discount_amount, payment_method, created_at, status, tax_amount, taxable_amount, zero_rated_amount, exempt_amount, customer_name, customer_tpin, customer_phone, amount_paid, balance_due, payment_status, due_date, cashier_name, cashier_username")
           .eq("business_id", business.id)
           .order("created_at", { ascending: false })
           .limit(PAGE_LIMIT);
@@ -167,6 +167,8 @@ const SalesHistory = () => {
               balanceDue: Number(s.balance_due ?? 0),
               paymentStatus: (s.payment_status as PaymentStatus) || 'paid',
               dueDate: s.due_date,
+              cashierName: s.cashier_name,
+              cashierUsername: s.cashier_username,
             }))
           );
         }
