@@ -176,7 +176,7 @@ const SalesHistory = () => {
         // Expenses — server-filtered by date window
         let expQ = supabase
           .from("expenses")
-          .select("id, name, amount, expense_date, notes")
+          .select("id, name, amount, expense_date, notes, category")
           .eq("business_id", business.id)
           .order("expense_date", { ascending: false })
           .limit(PAGE_LIMIT);
