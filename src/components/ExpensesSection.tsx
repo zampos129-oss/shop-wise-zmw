@@ -199,8 +199,8 @@ const ExpensesSection = ({ businessId, isOnline = true, onExpenseChanged }: Expe
                   <Select value={category} onValueChange={(v) => setCategory(v as ExpenseCategory)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="business">Business expense (in the business)</SelectItem>
-                      <SelectItem value="personal">Personal / outside business</SelectItem>
+                      <SelectItem value="business">Business Expense (rent, fuel, stock, salaries…)</SelectItem>
+                      <SelectItem value="personal">Owner Drawings (personal withdrawal)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
