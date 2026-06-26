@@ -1,81 +1,61 @@
-## What's done in Batch 2 already
 
-After auditing, Batch 2 (Inventory & Products) is **mostly shipped**:
+## First: your sales are NOT lost
 
-- ✅ Product images (upload component + private `product-images` bucket + storage RLS)
-- ✅ Product categories table & UI
-- ✅ Product variants table & `VariantsManager`
-- ✅ Inventory Dashboard (cost value, retail value, expected profit, low/out-of-stock)
-- ❌ **Missing: stock-adjustment approval workflow** — cashiers and owners both edit stock directly today.
+I checked the database directly. Your 3 sales for business **mc101** (owner `mwilaclement129@gmail.com`) are all still there:
 
-So Batch 2 needs one more piece. I'll ship that, then fix the image URL issue, then restyle the Admin Dashboard.
-
----
-
-## 1. Finish Batch 2 — Stock Adjustment Approval
-
-**DB migration**
-
-- New table `stock_adjustment_requests`: `id, business_id, product_id, variant_id (nullable), requested_by, adjustment_type ('add'|'remove'), quantity, reason, status ('pending'|'approved'|'rejected'), reviewed_by, reviewed_at, review_note, created_at`.
-- GRANTs to `authenticated` + `service_role`. RLS:
-  - Owner of business: full SELECT/UPDATE on own rows.
-  - Cashiers of business: SELECT + INSERT own rows (status forced 'pending').
-- RPC `approve_stock_adjustment(request_id uuid, note text)` (SECURITY DEFINER): owner-only, applies the delta to `products.stock` (or `product_variants.stock`), marks the request approved.
-- RPC `reject_stock_adjustment(request_id uuid, note text)`: owner-only, marks rejected.
-
-**UI (Products page)**
-
-- Existing "Adjust Stock" dialog stays as-is for owners (direct).
-- For cashiers it submits a request via the new table instead of mutating stock; toast "Sent for owner approval".
-- New owner-only **Pending Adjustments** card at top of Products page listing pending requests with Approve / Reject buttons + note input.
-
-## 2. Permanent product image URLs (no more 1-hour signed URLs)
-
-- Flip `product-images` bucket to **public** via `storage_update_bucket`.
-- Replace the public-read storage policy so anyone can `SELECT`; keep write/update/delete locked to the business owner's `{business_id}/...` prefix.
-- Switch `ProductImageUpload.tsx` and `useProducts.ts` from `createSignedUrl(s)` to `getPublicUrl` — URLs become stable forever (no expiry, no re-signing on every product list load).
-
-## 3. Admin Dashboard redesign (match reference screenshot)
-
-Target layout (single page, tabbed):
-
-```text
-┌──────────────────────────────────────────────────────────┐
-│ [shield] Admin Dashboard         [theme] [Refresh] [Out] │
-│         Manage your ZamPOS platform                      │
-├──────────────────────────────────────────────────────────┤
-│ [Stats] [Businesses] [Subscriptions] [Payouts]           │
-│ [Affiliates] [Settings]                                  │
-├──────────────────────────────────────────────────────────┤
-│  KPI cards: Businesses Registered • Active Subs •        │
-│             Monthly Revenue • Platform Status            │
-│  ─ Subscription Overview ─                               │
-│   Active │ Trial/Free │ Expired/Locked                   │
-│  ─ Revenue Overview ─                                    │
-│   Current Monthly │ Sub Fee │ Collection Rate            │
-└──────────────────────────────────────────────────────────┘
+```
+2026-06-26  K3,000
+2026-06-25  K3,000
+2026-06-25  K3,000
 ```
 
-Tabs:
+You're seeing an empty Sales page because you logged in as **`zampos129@gmail.com`**, which is a **Super Admin** account with no business attached — so the owner's Sales page has nothing to show it. Log in as `mwilaclement129@gmail.com` and the sales reappear.
 
-- **Stats** — new overview (KPIs + Subscription Overview + Revenue Overview cards).
-- **Businesses** — current businesses list (moved here from current default tab).
-- **Subscriptions** — extracted subscription extension controls + lock/unlock per business in a denser table.
-- **Payouts** — existing affiliate payouts queue (currently buried in Affiliates panel).
-- **Affiliates** — current `AdminAffiliatePanel`.
-- **Settings** — notices management + a placeholder for future platform settings.
+### Data safety across Lovable updates (important)
 
-All new cards/badges use existing semantic tokens (no hardcoded colors). Status colors (green / blue / red / orange) keep the same semantic mappings already used by `statusBadge`.
+Your client data lives in **Lovable Cloud (Postgres + Storage)**, not in the code. When I push code changes here:
+- Tables, rows, and storage files are **untouched**.
+- The only thing that ever modifies data is a migration I explicitly write (e.g. `ALTER TABLE`, `DROP COLUMN`).
+- I will never drop columns/tables that hold client data without asking you first.
+- All migrations are **additive by default** (new columns nullable, new tables only).
+
+So sales, products, debtors, cashier records, logos, and product images persist across every code update.
 
 ---
 
-## Technical notes
+## The 12-priority upgrade — needs to be staged
 
-- Migration order: create table → GRANT → ALTER ENABLE RLS → CREATE POLICY → CREATE RPCs.
-- Bucket flip is non-destructive — existing files keep working and get permanent URLs.
-- AdminDashboard rewrite stays one file; I'll split internal sections into local components but keep them in `src/pages/AdminDashboard.tsx`.
-- No changes to auth, sales, debtors, or POS in this pass.
+What you pasted is roughly **3–4 weeks of work** for a real POS team. Trying to ship all of it in one pass will break things and burn credits. I want to deliver it in tight, testable phases so each piece is verified before moving on.
 
-Approve and I'll execute all three in one go. and check if there is any other patch apart from the second one or its the last one 
+### Phase A — Stability + Money (do first)
+1. **Cash Outflow module** (replaces Expenses): Business Expense + Owner Drawings categories, dashboard cards (Sales Revenue / Business Expenses / Owner Drawings / Net Cash Position / Outstanding Debtors / Inventory Value), correct net-profit math.
+2. **Debtor management hardening**: enforce status rules (Pending / Partially Paid / Paid / Overdue) via DB trigger so they can't drift; color badges; payment collection already exists — wire it everywhere.
+3. **Sales History columns**: invoice number, cashier name + username, department, date/time, payment method, status badge — never anonymous.
+4. **Real-time dashboards**: invalidate the dashboard query on every sale / payment / expense / stock change (single `useRealtimeSync` already exists — extend it).
 
-&nbsp;
+### Phase B — Receipts done properly
+5. Rebuild **58mm / 80mm / A4** as **three separate layouts** (not one stretched template). A4 = full invoice with logo, customer block, table, tax summary, signature.
+6. **Print Preview** modal that exactly mirrors output.
+7. **Receipt Settings** per business (default size, footer, font scale, tax display, logo) saved to `businesses` table.
+
+### Phase C — Hardware + Cashiers
+8. **Barcode scanner** upgrades: works in POS, Product Search, Inventory, Stock Receiving, Product Create/Edit. "Not Found" dialog with *Create New* / *Link to Existing*. Add `sku` and `internal_code` columns alongside existing `barcode`; enforce uniqueness per business.
+9. **Cashier Activity page**: online status, last login, transactions today, revenue today; click into a cashier profile with performance + activity timeline.
+
+### Phase D — Reports + Audit
+10. **Reports hub**: Daily/Monthly Sales, Cash Flow, Inventory Value, Profit, Expenses, Owner Drawings, Cashier Performance, Debtors, Payments, Products, Categories — with PDF / Excel / Print export.
+11. **Audit log table** + triggers on sales, payments, expenses, products, stock; viewer page for owners/super admins.
+12. **Full app audit**: walk every page, kill placeholders, fix broken buttons, verify every calc.
+
+### Phase E — Polish
+13. Quotation tax engine (VAT / Turnover Tax / custom) and PDF layout pass.
+
+---
+
+## What I need from you
+
+**Confirm I should start with Phase A** (Cash Outflow + Debtors + Sales History + real-time dashboards). I'll ship it, you test it on your account, then we move to Phase B.
+
+If you'd rather I start somewhere else (e.g. Receipts first because you're about to demo to a client), tell me which phase to open with.
+
+Nothing in any phase will touch your existing sales, products, debtors, or images.
