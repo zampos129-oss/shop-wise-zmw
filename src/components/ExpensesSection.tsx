@@ -13,7 +13,15 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// 'personal' in the DB now represents Owner Drawings (money the owner takes
+// out for personal use). Both categories reduce available business cash, but
+// only 'business' counts as a business expense in P&L.
 type ExpenseCategory = 'business' | 'personal';
+
+const CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  business: 'Business Expense',
+  personal: 'Owner Drawings',
+};
 
 type Expense = {
   id: string;
