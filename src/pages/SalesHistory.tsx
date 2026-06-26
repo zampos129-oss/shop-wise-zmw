@@ -431,7 +431,13 @@ const SalesHistory = () => {
     const cashSales = countableSales.filter((s) => s.paymentMethod === "cash").length;
     const mobileSales = countableSales.filter((s) => s.paymentMethod === "mobile_money").length;
     const avgSale = totalSales > 0 ? totalRevenue / totalSales : 0;
-    const totalExpenses = filteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const businessExpenses = filteredExpenses
+      .filter(e => (e.category ?? 'business') === 'business')
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const ownerDrawings = filteredExpenses
+      .filter(e => e.category === 'personal')
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const totalOutflows = businessExpenses + ownerDrawings;
 
     // Calculate profit from cost prices, accounting for discounts
     let totalProfit = 0;
@@ -439,17 +445,17 @@ const SalesHistory = () => {
     countableSales.forEach(sale => {
       const saleDiscount = Number(sale.discountAmount) || 0;
       const saleSubtotal = Number(sale.subtotal) || 0;
-      
+
       (sale.items || []).forEach(item => {
         const costPrice = Number(item.costPrice) || 0;
         const sellingPrice = Number(item.price) || 0;
         const qty = Number(item.quantity) || 0;
         const itemTotal = sellingPrice * qty;
-        
+
         // Proportionally distribute discount across items
         const itemDiscountShare = saleSubtotal > 0 ? (itemTotal / saleSubtotal) * saleDiscount : 0;
         const itemRevenue = itemTotal - itemDiscountShare;
-        
+
         if (costPrice > 0) {
           hasCostData = true;
           const itemCost = costPrice * qty;
@@ -458,14 +464,24 @@ const SalesHistory = () => {
       });
     });
 
-    const netProfit = hasCostData ? totalProfit - totalExpenses : totalRevenue - totalExpenses;
+    // Both business expenses and owner drawings reduce business cash
+    const netProfit = hasCostData
+      ? totalProfit - totalOutflows
+      : totalRevenue - totalOutflows;
 
     const taxCollected = countableSales.reduce((s, x) => s + (Number(x.taxAmount) || 0), 0);
     const taxableSales = countableSales.reduce((s, x) => s + (Number(x.taxableAmount) || 0), 0);
     const zeroRatedSales = countableSales.reduce((s, x) => s + (Number(x.zeroRatedAmount) || 0), 0);
     const exemptSales = countableSales.reduce((s, x) => s + (Number(x.exemptAmount) || 0), 0);
 
-    return { totalRevenue, totalSales, cashSales, mobileSales, avgSale, totalExpenses, netProfit, totalProfit, hasCostData, taxCollected, taxableSales, zeroRatedSales, exemptSales };
+    return {
+      totalRevenue, totalSales, cashSales, mobileSales, avgSale,
+      totalExpenses: businessExpenses,
+      ownerDrawings,
+      totalOutflows,
+      netProfit, totalProfit, hasCostData,
+      taxCollected, taxableSales, zeroRatedSales, exemptSales,
+    };
   }, [filteredSales, filteredExpenses]);
 
   const handleDeleteSale = async (sale: Sale) => {
