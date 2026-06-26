@@ -57,6 +57,8 @@ type Sale = {
   balanceDue?: number;
   paymentStatus?: PaymentStatus;
   dueDate?: string | null;
+  cashierName?: string | null;
+  cashierUsername?: string | null;
 };
 
 type Expense = {
@@ -65,6 +67,7 @@ type Expense = {
   amount: number;
   expense_date: string;
   notes: string | null;
+  category: 'business' | 'personal';
 };
 
 type DebtorPayment = {
