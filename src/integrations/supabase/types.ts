@@ -328,6 +328,7 @@ export type Database = {
           created_at: string
           customer_name: string
           customer_phone: string | null
+          due_date: string | null
           id: string
           notes: string | null
           sale_id: string | null
@@ -341,6 +342,7 @@ export type Database = {
           created_at?: string
           customer_name: string
           customer_phone?: string | null
+          due_date?: string | null
           id?: string
           notes?: string | null
           sale_id?: string | null
@@ -354,6 +356,7 @@ export type Database = {
           created_at?: string
           customer_name?: string
           customer_phone?: string | null
+          due_date?: string | null
           id?: string
           notes?: string | null
           sale_id?: string | null
@@ -893,6 +896,9 @@ export type Database = {
           amount_paid: number
           balance_due: number
           business_id: string
+          cashier_id: string | null
+          cashier_name: string | null
+          cashier_username: string | null
           created_at: string
           customer_name: string | null
           customer_phone: string | null
@@ -918,6 +924,9 @@ export type Database = {
           amount_paid?: number
           balance_due?: number
           business_id: string
+          cashier_id?: string | null
+          cashier_name?: string | null
+          cashier_username?: string | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
@@ -943,6 +952,9 @@ export type Database = {
           amount_paid?: number
           balance_due?: number
           business_id?: string
+          cashier_id?: string | null
+          cashier_name?: string | null
+          cashier_username?: string | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
