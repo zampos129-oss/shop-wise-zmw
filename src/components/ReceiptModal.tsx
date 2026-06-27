@@ -322,7 +322,7 @@ const ReceiptModal = ({
         <div
           ref={receiptRef}
           className={`bg-white text-black p-4 rounded-lg ${isA4 ? "font-sans text-sm" : "font-mono text-sm"}`}
-          style={isA4 ? undefined : { maxWidth: size === "58mm" ? 220 : 300, marginInline: "auto" }}
+          style={{ maxWidth: styles.previewWidth, marginInline: "auto", overflowWrap: "anywhere" }}
         >
           <div className="header text-center mb-4">
             <h1 className={isA4 ? "text-xl font-bold" : "text-lg font-bold"}>{businessName}</h1>
