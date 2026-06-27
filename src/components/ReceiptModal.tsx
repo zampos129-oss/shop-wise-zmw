@@ -51,30 +51,39 @@ const escapeHtml = (str: string | null | undefined): string => {
 
 // Size-specific print CSS. Thermal sizes use 58mm/80mm @page with no margins
 // so receipts fit edge-to-edge on the roll. A4 uses standard portrait paper.
-const sizeStyles: Record<ReceiptSize, { pageCss: string; bodyMaxWidth: string; baseFont: string; headerFont: string; totalFont: string; padding: string }> = {
+const sizeStyles: Record<ReceiptSize, { pageCss: string; previewWidth: number; bodyWidth: string; baseFont: string; headerFont: string; totalFont: string; padding: string; priceWidth: string; qtyWidth: string }> = {
   "58mm": {
-    pageCss: "@page { margin: 0; size: 58mm auto; } body { padding: 2mm 3mm; width: 52mm; }",
-    bodyMaxWidth: "220px",
+    pageCss: "@page { margin: 0; size: 58mm auto; } html, body { width: 58mm; } body { padding: 2mm 2.5mm; }",
+    previewWidth: 219,
+    bodyWidth: "58mm",
     baseFont: "11px",
     headerFont: "14px",
     totalFont: "13px",
     padding: "8px",
+    priceWidth: "22mm",
+    qtyWidth: "9mm",
   },
   "80mm": {
-    pageCss: "@page { margin: 0; size: 80mm auto; } body { padding: 3mm 4mm; width: 72mm; }",
-    bodyMaxWidth: "300px",
+    pageCss: "@page { margin: 0; size: 80mm auto; } html, body { width: 80mm; } body { padding: 3mm 4mm; }",
+    previewWidth: 302,
+    bodyWidth: "80mm",
     baseFont: "12px",
     headerFont: "16px",
     totalFont: "15px",
     padding: "12px",
+    priceWidth: "26mm",
+    qtyWidth: "10mm",
   },
   a4: {
-    pageCss: "@page { margin: 15mm; size: A4 portrait; } body { padding: 0; max-width: 180mm; margin: 0 auto; }",
-    bodyMaxWidth: "640px",
+    pageCss: "@page { margin: 14mm; size: A4 portrait; } html, body { width: auto; } body { padding: 0; max-width: 182mm; margin: 0 auto; }",
+    previewWidth: 640,
+    bodyWidth: "auto",
     baseFont: "13px",
     headerFont: "22px",
     totalFont: "17px",
     padding: "16px",
+    priceWidth: "90px",
+    qtyWidth: "60px",
   },
 };
 
@@ -166,22 +175,24 @@ const ReceiptModal = ({
           <title>Receipt - ${safeReceiptId}</title>
           <style>
             * { box-sizing: border-box; }
-            body { font-family: ${fontFamily}; margin: 0; background: white; color: black; font-size: ${styles.baseFont}; padding: ${styles.padding}; max-width: ${styles.bodyMaxWidth}; }
+            body { font-family: ${fontFamily}; margin: 0; background: white; color: black; font-size: ${styles.baseFont}; padding: ${styles.padding}; width: ${styles.bodyWidth}; overflow-wrap: anywhere; }
             .header { text-align: center; margin-bottom: 12px; }
-            .header h1 { font-size: ${styles.headerFont}; margin: 0 0 4px 0; }
+            .header h1 { font-size: ${styles.headerFont}; margin: 0 0 4px 0; line-height: 1.15; overflow-wrap: anywhere; }
             .header p { margin: 2px 0; font-size: ${styles.baseFont}; color: #444; }
             .divider { border-top: 1px dashed #000; margin: 8px 0; }
-            .item { display: flex; justify-content: space-between; font-size: ${styles.baseFont}; margin: 4px 0; gap: 4px; }
-            .item-name { flex: 1; word-break: break-word; }
-            .item-qty { width: 32px; text-align: center; flex-shrink: 0; }
-            .item-price { width: 80px; text-align: right; flex-shrink: 0; }
+            .item { display: grid; grid-template-columns: minmax(0, 1fr) ${styles.qtyWidth} ${styles.priceWidth}; align-items: start; font-size: ${styles.baseFont}; margin: 4px 0; gap: 2mm; }
+            .item-name { min-width: 0; word-break: break-word; overflow-wrap: anywhere; }
+            .item-qty { text-align: center; white-space: nowrap; }
+            .item-price { text-align: right; white-space: nowrap; }
             .totals { margin-top: 8px; }
-            .total-row { display: flex; justify-content: space-between; font-size: ${styles.baseFont}; margin: 3px 0; }
+            .total-row { display: flex; justify-content: space-between; gap: 4px; font-size: ${styles.baseFont}; margin: 3px 0; }
+            .total-row span:last-child { text-align: right; white-space: nowrap; }
             .total-row.grand { font-size: ${styles.totalFont}; font-weight: bold; border-top: 1px solid #000; padding-top: 6px; margin-top: 6px; }
             .customer { font-size: ${styles.baseFont}; margin: 3px 0; }
             .footer { text-align: center; margin-top: 16px; font-size: ${styles.baseFont}; color: #666; }
             @media print {
               html, body { margin: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              body { max-width: none; }
               ${styles.pageCss}
             }
           </style>

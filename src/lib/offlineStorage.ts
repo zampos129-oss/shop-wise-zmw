@@ -29,6 +29,9 @@ interface OfflineSale {
   exemptAmount?: number;
   customerName?: string | null;
   customerTpin?: string | null;
+  customerPhone?: string | null;
+  amountPaid?: number;
+  dueDate?: string | null;
 }
 
 interface OfflineStockUpdate {

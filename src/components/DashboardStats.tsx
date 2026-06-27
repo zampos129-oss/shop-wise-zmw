@@ -9,7 +9,6 @@ import {
   Wallet,
   Banknote,
   PiggyBank,
-  Package,
 } from 'lucide-react';
 
 interface DashboardStatsProps {
@@ -24,7 +23,6 @@ interface Stats {
   lowStockCount: number;
   businessExpensesToday: number;
   ownerDrawingsToday: number;
-  inventoryValue: number;
 }
 
 const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
@@ -35,7 +33,6 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
     lowStockCount: 0,
     businessExpensesToday: 0,
     ownerDrawingsToday: 0,
-    inventoryValue: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +62,7 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
         ? Promise.resolve({ data: [] as any[] })
         : supabase
             .from('products')
-            .select('stock, minimum_stock, cost_price, price')
+            .select('stock, minimum_stock')
             .eq('business_id', businessId)
             .eq('is_active', true),
     ]);
@@ -76,8 +73,6 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
     const products = (productsRes.data || []) as Array<{
       stock: number;
       minimum_stock: number;
-      cost_price?: number | null;
-      price?: number | null;
     }>;
 
     const businessExpensesToday = expenses
@@ -86,11 +81,6 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
     const ownerDrawingsToday = expenses
       .filter((e) => e.category === 'personal')
       .reduce((sum, e) => sum + Number(e.amount || 0), 0);
-
-    const inventoryValue = products.reduce((sum, p) => {
-      const unit = Number(p.cost_price ?? p.price ?? 0);
-      return sum + unit * Number(p.stock || 0);
-    }, 0);
 
     const lowStockCount = isService
       ? 0
@@ -106,7 +96,6 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
       lowStockCount,
       businessExpensesToday,
       ownerDrawingsToday,
-      inventoryValue,
     });
     setLoading(false);
   }, [businessId, isService]);
@@ -189,13 +178,6 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
     },
     ...(!isService
       ? [
-          {
-            label: 'Inventory Value',
-            value: formatZMW(stats.inventoryValue),
-            icon: Package,
-            color: 'text-indigo-600',
-            bg: 'bg-indigo-500/10',
-          },
           {
             label: 'Low Stock Items',
             value: stats.lowStockCount.toString(),
