@@ -1198,64 +1198,29 @@ export type Database = {
         Args: { p_note?: string; p_request_id: string }
         Returns: string
       }
-      sync_offline_sale:
-        | {
-            Args: {
-              p_business_id: string
-              p_created_at?: string
-              p_discount_amount?: number
-              p_discount_type?: string
-              p_items: Json
-              p_offline_id: string
-              p_payment_method?: string
-              p_subtotal: number
-              p_total: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_business_id: string
-              p_created_at?: string
-              p_customer_name?: string
-              p_customer_tpin?: string
-              p_discount_amount?: number
-              p_discount_type?: string
-              p_exempt_amount?: number
-              p_items: Json
-              p_offline_id: string
-              p_payment_method?: string
-              p_subtotal: number
-              p_tax_amount?: number
-              p_taxable_amount?: number
-              p_total: number
-              p_zero_rated_amount?: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_amount_paid?: number
-              p_business_id: string
-              p_created_at?: string
-              p_customer_name?: string
-              p_customer_phone?: string
-              p_customer_tpin?: string
-              p_discount_amount?: number
-              p_discount_type?: string
-              p_due_date?: string
-              p_exempt_amount?: number
-              p_items: Json
-              p_offline_id: string
-              p_payment_method?: string
-              p_subtotal: number
-              p_tax_amount?: number
-              p_taxable_amount?: number
-              p_total: number
-              p_zero_rated_amount?: number
-            }
-            Returns: string
-          }
+      sync_offline_sale: {
+        Args: {
+          p_amount_paid?: number
+          p_business_id: string
+          p_created_at?: string
+          p_customer_name?: string
+          p_customer_phone?: string
+          p_customer_tpin?: string
+          p_discount_amount?: number
+          p_discount_type?: string
+          p_due_date?: string
+          p_exempt_amount?: number
+          p_items: Json
+          p_offline_id: string
+          p_payment_method?: string
+          p_subtotal: number
+          p_tax_amount?: number
+          p_taxable_amount?: number
+          p_total: number
+          p_zero_rated_amount?: number
+        }
+        Returns: string
+      }
     }
     Enums: {
       affiliate_status: "pending" | "active" | "suspended"
