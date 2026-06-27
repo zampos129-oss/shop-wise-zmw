@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ConnectionStatus from '@/components/ConnectionStatus';
 import LockScreen from '@/components/LockScreen';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -14,6 +15,9 @@ import { useBusinessType, BusinessType } from '@/hooks/useBusinessType';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import CashiersManager from '@/components/CashiersManager';
+
+const RECEIPT_SIZE_KEY = 'zampos.receiptSize';
+type ReceiptSizeSetting = '58mm' | '80mm' | 'a4';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -39,6 +43,15 @@ const Settings = () => {
   const [vatRate, setVatRate] = useState('16');
   const [customTaxName, setCustomTaxName] = useState('');
   const [customTaxRate, setCustomTaxRate] = useState('');
+  const [receiptSize, setReceiptSize] = useState<ReceiptSizeSetting>(() => {
+    if (typeof window === 'undefined') return '80mm';
+    const saved = window.localStorage.getItem(RECEIPT_SIZE_KEY);
+    return saved === '58mm' || saved === '80mm' || saved === 'a4' ? saved : '80mm';
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem(RECEIPT_SIZE_KEY, receiptSize);
+  }, [receiptSize]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -387,6 +400,29 @@ const Settings = () => {
                 </div>
                 <p className="text-xs text-muted-foreground">Shown on receipts, quotations and invoices.</p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Receipt Printing */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Receipt className="h-5 w-5" /> Receipt Printing</CardTitle>
+              <CardDescription>
+                Default paper size used when printing sales receipts.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Label>Default receipt size</Label>
+              <Select value={receiptSize} onValueChange={(value) => setReceiptSize(value as ReceiptSizeSetting)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="58mm">58mm thermal printer</SelectItem>
+                  <SelectItem value="80mm">80mm thermal printer</SelectItem>
+                  <SelectItem value="a4">A4 office printer</SelectItem>
+                </SelectContent>
+              </Select>
             </CardContent>
           </Card>
 

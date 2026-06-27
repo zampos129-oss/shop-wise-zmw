@@ -53,6 +53,9 @@ export function useSalesSync(businessId: string | undefined) {
             p_exempt_amount: (sale as any).exemptAmount || 0,
             p_customer_name: (sale as any).customerName || null,
             p_customer_tpin: (sale as any).customerTpin || null,
+            p_amount_paid: (sale as any).amountPaid ?? sale.total,
+            p_due_date: (sale as any).dueDate || null,
+            p_customer_phone: (sale as any).customerPhone || null,
           });
 
           if (saleErr) {
