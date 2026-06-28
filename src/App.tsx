@@ -20,6 +20,9 @@ import Settings from "./pages/Settings";
 import Debtors from "./pages/Debtors";
 import Affiliate from "./pages/Affiliate";
 import AffiliateAuth from "./pages/AffiliateAuth";
+import Reports from "./pages/Reports";
+import CashierActivity from "./pages/CashierActivity";
+import AuditLog from "./pages/AuditLog";
 import NotFound from "./pages/NotFound";
 import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 import { AppSyncManager } from "@/components/AppSyncManager";
@@ -48,6 +51,9 @@ const App = forwardRef<HTMLDivElement>((_, ref) => (
                 <Route path="/products" element={<RequireOwner><Products /></RequireOwner>} />
                 <Route path="/subscription" element={<RequireOwner><Subscription /></RequireOwner>} />
                 <Route path="/sales" element={<RequireOwner><SalesHistory /></RequireOwner>} />
+                <Route path="/reports" element={<RequireOwner><Reports /></RequireOwner>} />
+                <Route path="/cashier-activity" element={<RequireOwner><CashierActivity /></RequireOwner>} />
+                <Route path="/audit-log" element={<RequireOwner><AuditLog /></RequireOwner>} />
                 <Route path="/debtors" element={<RequireOwner><Debtors /></RequireOwner>} />
                 <Route path="/settings" element={<RequireOwner><Settings /></RequireOwner>} />
                 <Route path="/affiliate" element={<Affiliate />} />

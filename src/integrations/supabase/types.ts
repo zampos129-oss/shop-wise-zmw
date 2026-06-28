@@ -177,6 +177,42 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_label: string | null
+          business_id: string | null
+          changes: Json | null
+          created_at: string
+          id: string
+          record_id: string | null
+          table_name: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_label?: string | null
+          business_id?: string | null
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          record_id?: string | null
+          table_name: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_label?: string | null
+          business_id?: string | null
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          record_id?: string | null
+          table_name?: string
+        }
+        Relationships: []
+      }
       business_cashiers: {
         Row: {
           auth_user_id: string
@@ -908,6 +944,7 @@ export type Database = {
           due_date: string | null
           exempt_amount: number
           id: string
+          invoice_number: string | null
           items: Json
           offline_id: string | null
           payment_method: string
@@ -936,6 +973,7 @@ export type Database = {
           due_date?: string | null
           exempt_amount?: number
           id?: string
+          invoice_number?: string | null
           items: Json
           offline_id?: string | null
           payment_method: string
@@ -964,6 +1002,7 @@ export type Database = {
           due_date?: string | null
           exempt_amount?: number
           id?: string
+          invoice_number?: string | null
           items?: Json
           offline_id?: string | null
           payment_method?: string

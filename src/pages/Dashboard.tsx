@@ -14,7 +14,7 @@ import LowStockAlert from '@/components/LowStockAlert';
 import DashboardNotifications from '@/components/DashboardNotifications';
 import DashboardStats from '@/components/DashboardStats';
 
-import { Store, ShoppingCart, Package, CreditCard, LogOut, Copy, Receipt, Settings as SettingsIcon, Users, Wallet, Briefcase } from 'lucide-react';
+import { Store, ShoppingCart, Package, CreditCard, LogOut, Copy, Receipt, Settings as SettingsIcon, Users, Wallet, Briefcase, BarChart3, FileClock, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -199,6 +199,33 @@ const Dashboard = () => {
 
           {/* Secondary Actions */}
           <div className="grid grid-cols-3 gap-3">
+            <Link to="/reports">
+              <Card className="product-card h-full">
+                <CardContent className="flex flex-col items-center justify-center p-4 text-center">
+                  <BarChart3 className="w-6 h-6 text-primary mb-2" />
+                  <h3 className="font-medium text-sm">Reports</h3>
+                  <p className="text-xs text-muted-foreground">Sales & profit</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/cashier-activity">
+              <Card className="product-card h-full">
+                <CardContent className="flex flex-col items-center justify-center p-4 text-center">
+                  <UserCheck className="w-6 h-6 text-primary mb-2" />
+                  <h3 className="font-medium text-sm">Cashiers</h3>
+                  <p className="text-xs text-muted-foreground">Activity today</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/audit-log">
+              <Card className="product-card h-full">
+                <CardContent className="flex flex-col items-center justify-center p-4 text-center">
+                  <FileClock className="w-6 h-6 text-muted-foreground mb-2" />
+                  <h3 className="font-medium text-sm">Audit Log</h3>
+                  <p className="text-xs text-muted-foreground">All changes</p>
+                </CardContent>
+              </Card>
+            </Link>
             <Link to="/subscription">
               <Card className="product-card h-full">
                 <CardContent className="flex flex-col items-center justify-center p-4 text-center">
