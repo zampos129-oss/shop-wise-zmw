@@ -199,6 +199,33 @@ const Dashboard = () => {
 
           {/* Secondary Actions */}
           <div className="grid grid-cols-3 gap-3">
+            <Link to="/reports">
+              <Card className="product-card h-full">
+                <CardContent className="flex flex-col items-center justify-center p-4 text-center">
+                  <BarChart3 className="w-6 h-6 text-primary mb-2" />
+                  <h3 className="font-medium text-sm">Reports</h3>
+                  <p className="text-xs text-muted-foreground">Sales & profit</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/cashier-activity">
+              <Card className="product-card h-full">
+                <CardContent className="flex flex-col items-center justify-center p-4 text-center">
+                  <UserCheck className="w-6 h-6 text-primary mb-2" />
+                  <h3 className="font-medium text-sm">Cashiers</h3>
+                  <p className="text-xs text-muted-foreground">Activity today</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/audit-log">
+              <Card className="product-card h-full">
+                <CardContent className="flex flex-col items-center justify-center p-4 text-center">
+                  <FileClock className="w-6 h-6 text-muted-foreground mb-2" />
+                  <h3 className="font-medium text-sm">Audit Log</h3>
+                  <p className="text-xs text-muted-foreground">All changes</p>
+                </CardContent>
+              </Card>
+            </Link>
             <Link to="/subscription">
               <Card className="product-card h-full">
                 <CardContent className="flex flex-col items-center justify-center p-4 text-center">
