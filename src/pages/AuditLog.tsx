@@ -48,7 +48,7 @@ const AuditLog = () => {
         .order("created_at", { ascending: false })
         .limit(200);
       if (cancelled) return;
-      setLogs((data ?? []) as AuditEntry[]);
+      setLogs(((data ?? []) as unknown) as AuditEntry[]);
       setLoading(false);
     })();
     return () => { cancelled = true; };
