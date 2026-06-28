@@ -14,7 +14,7 @@ import LowStockAlert from '@/components/LowStockAlert';
 import DashboardNotifications from '@/components/DashboardNotifications';
 import DashboardStats from '@/components/DashboardStats';
 
-import { Store, ShoppingCart, Package, CreditCard, LogOut, Copy, Receipt, Settings as SettingsIcon, Users, Wallet, Briefcase } from 'lucide-react';
+import { Store, ShoppingCart, Package, CreditCard, LogOut, Copy, Receipt, Settings as SettingsIcon, Users, Wallet, Briefcase, BarChart3, FileClock, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
