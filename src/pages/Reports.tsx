@@ -54,8 +54,9 @@ const Reports = () => {
           .from("expenses")
           .select("id, amount, category, expense_date")
           .eq("business_id", business.id)
-          .gte("expense_date", format(range.from, "yyyy-MM-dd"))
-          .lte("expense_date", format(range.to, "yyyy-MM-dd")),
+          .gte("expense_date", lusakaDateLabel(range.from))
+          .lte("expense_date", lusakaDateLabel(range.to)),
+
         supabase
           .from("debtors")
           .select("id, balance_due, status")
