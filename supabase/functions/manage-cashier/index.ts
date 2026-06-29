@@ -79,8 +79,15 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!cashier || !cashier.is_active) return json({ error: "Cashier not found or disabled" }, 404);
 
+    // Stamp last_login_at so the owner's Cashier Activity view stays accurate.
+    await admin
+      .from("business_cashiers")
+      .update({ last_login_at: new Date().toISOString() })
+      .eq("id", cashier.id);
+
     const email = internalEmail(bizRow.id, username);
     return json({ ok: true, email, password: pinPassword(pin) });
+
   }
 
   // Owner-only actions below
