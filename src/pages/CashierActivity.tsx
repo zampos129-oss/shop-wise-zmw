@@ -10,6 +10,9 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { formatZMW } from "@/lib/currency";
+import { lusakaDayRange } from "@/lib/dateRange";
+
+
 
 type Cashier = {
   id: string;
