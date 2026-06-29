@@ -10,6 +10,9 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { formatZMW } from "@/lib/currency";
+import { lusakaDayRange } from "@/lib/dateRange";
+
+
 
 type Cashier = {
   id: string;
@@ -34,50 +37,63 @@ const CashierActivity = () => {
     if (!authLoading && !user) navigate("/auth");
   }, [authLoading, user, navigate]);
 
-  useEffect(() => {
+  const load = async () => {
     if (!business?.id) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const today = new Date().toISOString().slice(0, 10);
-      const [{ data: cs }, { data: sales }] = await Promise.all([
-        supabase
-          .from("business_cashiers")
-          .select("id, username, display_name, is_active, last_login_at")
-          .eq("business_id", business.id)
-          .order("created_at"),
-        supabase
-          .from("sales")
-          .select("cashier_id, total, status")
-          .eq("business_id", business.id)
-          .gte("created_at", `${today}T00:00:00`)
-          .lte("created_at", `${today}T23:59:59`),
-      ]);
-      if (cancelled) return;
-      setCashiers((cs ?? []) as Cashier[]);
-      const agg: Record<string, Stat> = {};
-      let owner: Stat = { count: 0, revenue: 0 };
-      (sales ?? []).forEach((s: any) => {
-        if (s.status === "refunded") return;
-        const rev = Number(s.total) || 0;
-        if (!s.cashier_id) {
-          owner.count += 1;
-          owner.revenue += rev;
-          return;
-        }
-        const cur = agg[s.cashier_id] || { count: 0, revenue: 0 };
-        cur.count += 1;
-        cur.revenue += rev;
-        agg[s.cashier_id] = cur;
-      });
-      setStats(agg);
-      setOwnerStat(owner);
-      setLoading(false);
-    })();
+    setLoading(true);
+    const { from, to } = lusakaDayRange();
+    const [{ data: cs }, { data: sales }] = await Promise.all([
+      supabase
+        .from("business_cashiers")
+        .select("id, username, display_name, is_active, last_login_at")
+        .eq("business_id", business.id)
+        .order("created_at"),
+      supabase
+        .from("sales")
+        .select("cashier_id, total, status")
+        .eq("business_id", business.id)
+        .gte("created_at", from.toISOString())
+        .lte("created_at", to.toISOString()),
+    ]);
+    setCashiers((cs ?? []) as Cashier[]);
+    const agg: Record<string, Stat> = {};
+    let owner: Stat = { count: 0, revenue: 0 };
+    (sales ?? []).forEach((s: any) => {
+      if (s.status === "refunded") return;
+      const rev = Number(s.total) || 0;
+      if (!s.cashier_id) {
+        owner.count += 1;
+        owner.revenue += rev;
+        return;
+      }
+      const cur = agg[s.cashier_id] || { count: 0, revenue: 0 };
+      cur.count += 1;
+      cur.revenue += rev;
+      agg[s.cashier_id] = cur;
+    });
+    setStats(agg);
+    setOwnerStat(owner);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void load();
+    if (!business?.id) return;
+    const channel = supabase
+      .channel(`cashier-activity-${business.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sales", filter: `business_id=eq.${business.id}` }, () => { void load(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "business_cashiers", filter: `business_id=eq.${business.id}` }, () => { void load(); })
+      .subscribe();
+    const onSync = () => { void load(); };
+    window.addEventListener("zampos:sync-complete", onSync);
+    const interval = setInterval(() => { void load(); }, 60000);
     return () => {
-      cancelled = true;
+      void supabase.removeChannel(channel);
+      window.removeEventListener("zampos:sync-complete", onSync);
+      clearInterval(interval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [business?.id]);
+
 
   if (authLoading || bizLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;

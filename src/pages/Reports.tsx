@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Download, TrendingUp, ShoppingCart, Receipt, Wallet, AlertCircle } from "lucide-react";
-import { format, startOfDay, startOfMonth, endOfDay, endOfMonth, startOfWeek } from "date-fns";
+import { format } from "date-fns";
+import { lusakaDayRange, lusakaWeekRange, lusakaMonthRange, lusakaDateLabel } from "@/lib/dateRange";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,43 +32,56 @@ const Reports = () => {
   }, [authLoading, user, navigate]);
 
   const range = useMemo(() => {
-    const now = new Date();
-    if (period === "today") return { from: startOfDay(now), to: endOfDay(now) };
-    if (period === "week") return { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfDay(now) };
-    return { from: startOfMonth(now), to: endOfMonth(now) };
+    if (period === "today") return lusakaDayRange();
+    if (period === "week") return lusakaWeekRange();
+    return lusakaMonthRange();
   }, [period]);
 
-  useEffect(() => {
+
+  const fetchAll = async () => {
     if (!business?.id) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const [{ data: s }, { data: e }, { data: d }] = await Promise.all([
-        supabase
-          .from("sales")
-          .select("id, total, items, tax_amount, payment_method, cashier_name, status, created_at")
-          .eq("business_id", business.id)
-          .gte("created_at", range.from.toISOString())
-          .lte("created_at", range.to.toISOString()),
-        supabase
-          .from("expenses")
-          .select("id, amount, category, expense_date")
-          .eq("business_id", business.id)
-          .gte("expense_date", format(range.from, "yyyy-MM-dd"))
-          .lte("expense_date", format(range.to, "yyyy-MM-dd")),
-        supabase
-          .from("debtors")
-          .select("id, balance_due, status")
-          .eq("business_id", business.id),
-      ]);
-      if (cancelled) return;
-      setSales(s ?? []);
-      setExpenses(e ?? []);
-      setDebtors(d ?? []);
-      setLoading(false);
-    })();
-    return () => { cancelled = true; };
+    setLoading(true);
+    const [{ data: s }, { data: e }, { data: d }] = await Promise.all([
+      supabase
+        .from("sales")
+        .select("id, total, items, tax_amount, payment_method, cashier_name, status, created_at")
+        .eq("business_id", business.id)
+        .gte("created_at", range.from.toISOString())
+        .lte("created_at", range.to.toISOString()),
+      supabase
+        .from("expenses")
+        .select("id, amount, category, expense_date")
+        .eq("business_id", business.id)
+        .gte("expense_date", lusakaDateLabel(range.from))
+        .lte("expense_date", lusakaDateLabel(range.to)),
+      supabase
+        .from("debtors")
+        .select("id, balance_due, status")
+        .eq("business_id", business.id),
+    ]);
+    setSales(s ?? []);
+    setExpenses(e ?? []);
+    setDebtors(d ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void fetchAll();
+    if (!business?.id) return;
+    const channel = supabase
+      .channel(`reports-${business.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sales", filter: `business_id=eq.${business.id}` }, () => { void fetchAll(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "expenses", filter: `business_id=eq.${business.id}` }, () => { void fetchAll(); })
+      .subscribe();
+    const onSync = () => { void fetchAll(); };
+    window.addEventListener("zampos:sync-complete", onSync);
+    return () => {
+      void supabase.removeChannel(channel);
+      window.removeEventListener("zampos:sync-complete", onSync);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [business?.id, range.from, range.to]);
+
 
   const stats = useMemo(() => {
     const active = sales.filter((s) => s.status !== "refunded");
