@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Download, TrendingUp, ShoppingCart, Receipt, Wallet, AlertCircle } from "lucide-react";
-import { format, startOfDay, startOfMonth, endOfDay, endOfMonth, startOfWeek } from "date-fns";
+import { format } from "date-fns";
+import { lusakaDayRange, lusakaWeekRange, lusakaMonthRange, lusakaDateLabel } from "@/lib/dateRange";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
