@@ -32,11 +32,11 @@ const Reports = () => {
   }, [authLoading, user, navigate]);
 
   const range = useMemo(() => {
-    const now = new Date();
-    if (period === "today") return { from: startOfDay(now), to: endOfDay(now) };
-    if (period === "week") return { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfDay(now) };
-    return { from: startOfMonth(now), to: endOfMonth(now) };
+    if (period === "today") return lusakaDayRange();
+    if (period === "week") return lusakaWeekRange();
+    return lusakaMonthRange();
   }, [period]);
+
 
   useEffect(() => {
     if (!business?.id) return;
