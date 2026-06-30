@@ -222,13 +222,11 @@ Deno.serve(async (req) => {
         .update({ is_active: isActive })
         .eq("id", cashierId);
       if (uErr) {
-        const msg = uErr.message.includes("CASHIER_LIMIT_REACHED")
-          ? "You've reached the 3 active cashier limit."
-          : uErr.message;
-        return json({ error: msg }, 409);
+        return json({ error: uErr.message }, 409);
       }
       return json({ ok: true });
     }
+
 
     if (action === "delete") {
       const cashierId = String(body.cashier_id ?? "");
