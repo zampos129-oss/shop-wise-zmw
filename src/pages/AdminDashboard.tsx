@@ -14,7 +14,7 @@ import ConnectionStatus from "@/components/ConnectionStatus";
 import AdminAffiliatePanel from "@/components/AdminAffiliatePanel";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { PAYMENT_DETAILS } from "@/lib/paymentDetails";
+import { PAYMENT_DETAILS, PRICING_TIERS } from "@/lib/paymentDetails";
 import { exportBusinessesToCsv } from "@/lib/csvExport";
 import { useToast } from "@/hooks/use-toast";
 
