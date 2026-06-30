@@ -77,7 +77,8 @@ const CashiersManager = ({ businessId, paymentCode }: Props) => {
   }, []);
 
   const activeCount = cashiers.filter(c => c.is_active).length;
-  const limitReached = activeCount >= MAX_CASHIERS;
+  const currentTier = getPricingTier(activeCount);
+  const nextTier = getPricingTier(activeCount + 1);
 
   const handleCreate = async () => {
     const username = newUsername.trim().toLowerCase();
