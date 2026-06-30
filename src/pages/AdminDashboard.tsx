@@ -809,10 +809,37 @@ const AdminDashboard = () => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {statusBadge(b.subscription_status, b.is_locked)}
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="flex items-center gap-2">
+                            {b.plan_tier ? (
+                              <Badge variant="outline" className="text-xs">Plan: {b.plan_tier}</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs text-muted-foreground">Plan: Auto</Badge>
+                            )}
+                            {statusBadge(b.subscription_status, b.is_locked)}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs text-muted-foreground">Set plan</Label>
+                            <Select
+                              value={b.plan_tier ?? "auto"}
+                              onValueChange={(v) => setPlan(b, v)}
+                            >
+                              <SelectTrigger className="h-8 text-xs w-44">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="auto">Auto (by cashier count)</SelectItem>
+                                {PRICING_TIERS.map((t) => (
+                                  <SelectItem key={t.label} value={t.label}>
+                                    {t.label} — K{t.priceZmw}/mo
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       </div>
+
 
                       {/* Contact Details */}
                       {(b.phone || b.email || b.address) && (
