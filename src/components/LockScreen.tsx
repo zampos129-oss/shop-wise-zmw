@@ -36,6 +36,7 @@ const LockScreen = ({ paymentCode, businessId, daysExpired = 0, onRetrySync, isS
   const { toast } = useToast();
   const [months, setMonths] = useState(1);
   const [activeCashiers, setActiveCashiers] = useState(0);
+  const [planTier, setPlanTier] = useState<string | null>(null);
 
   useEffect(() => {
     if (!businessId) return;
@@ -46,10 +47,17 @@ const LockScreen = ({ paymentCode, businessId, daysExpired = 0, onRetrySync, isS
         .eq('business_id', businessId)
         .eq('is_active', true);
       setActiveCashiers(count ?? 0);
+      const { data: biz } = await supabase
+        .from('businesses')
+        .select('plan_tier')
+        .eq('id', businessId)
+        .maybeSingle();
+      setPlanTier(((biz as any)?.plan_tier as string | null) ?? null);
     })();
   }, [businessId]);
 
-  const tier = getPricingTier(activeCashiers);
+  const tier = resolvePricingTier(activeCashiers, planTier);
+
   const amountZmw = months * tier.priceZmw;
 
   const handleWhatsApp = () => {
