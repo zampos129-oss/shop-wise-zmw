@@ -158,7 +158,7 @@ const CashiersManager = ({ businessId, paymentCode }: Props) => {
               Cashiers can sell at the till but can't edit products, stock, prices, expenses, debtors or settings.
             </CardDescription>
           </div>
-          <Badge variant={limitReached ? 'destructive' : 'secondary'}>{activeCount}/{MAX_CASHIERS}</Badge>
+          <Badge variant="secondary">{activeCount} active · K{currentTier.priceZmw}/mo</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
