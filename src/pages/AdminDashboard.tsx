@@ -31,7 +31,9 @@ type BusinessRow = {
   phone: string | null;
   email: string | null;
   address: string | null;
+  plan_tier: string | null;
 };
+
 
 type PaymentRow = {
   id: string;
