@@ -32,7 +32,9 @@ interface Business {
   vatRate: number;
   customTaxName?: string | null;
   customTaxRate?: number | null;
+  planTier?: string | null;
 }
+
 
 const mapBusinessRow = (row: BusinessRow): Business => ({
   id: row.id,
