@@ -49,7 +49,7 @@ const Subscription = () => {
     })();
   }, [business?.id]);
 
-  const tier = useMemo(() => getPricingTier(activeCashiers), [activeCashiers]);
+  const tier = useMemo(() => resolvePricingTier(activeCashiers, business?.planTier), [activeCashiers, business?.planTier]);
   const amountZmw = months * tier.priceZmw;
 
   if (!authLoading && !user) {
