@@ -114,7 +114,7 @@ const AdminDashboard = () => {
     try {
       const { data: biz, error: bizErr } = await supabase
         .from("businesses")
-        .select("id,name,user_id,payment_code,subscription_status,subscription_expires_at,is_locked,last_sync_at,created_at,phone,email,address")
+        .select("id,name,user_id,payment_code,subscription_status,subscription_expires_at,is_locked,last_sync_at,created_at,phone,email,address,plan_tier")
         .order("created_at", { ascending: false });
       if (bizErr) throw bizErr;
       setBusinesses((biz ?? []) as BusinessRow[]);
