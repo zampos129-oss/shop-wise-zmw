@@ -14,7 +14,7 @@ import ConnectionStatus from "@/components/ConnectionStatus";
 import AdminAffiliatePanel from "@/components/AdminAffiliatePanel";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { PAYMENT_DETAILS } from "@/lib/paymentDetails";
+import { PAYMENT_DETAILS, PRICING_TIERS } from "@/lib/paymentDetails";
 import { exportBusinessesToCsv } from "@/lib/csvExport";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,7 +31,9 @@ type BusinessRow = {
   phone: string | null;
   email: string | null;
   address: string | null;
+  plan_tier: string | null;
 };
+
 
 type PaymentRow = {
   id: string;
@@ -112,7 +114,7 @@ const AdminDashboard = () => {
     try {
       const { data: biz, error: bizErr } = await supabase
         .from("businesses")
-        .select("id,name,user_id,payment_code,subscription_status,subscription_expires_at,is_locked,last_sync_at,created_at,phone,email,address")
+        .select("id,name,user_id,payment_code,subscription_status,subscription_expires_at,is_locked,last_sync_at,created_at,phone,email,address,plan_tier")
         .order("created_at", { ascending: false });
       if (bizErr) throw bizErr;
       setBusinesses((biz ?? []) as BusinessRow[]);
@@ -315,6 +317,22 @@ const AdminDashboard = () => {
       toast({ variant: "destructive", title: "Failed", description: e?.message ?? "Could not delete business" });
     }
   };
+
+  const setPlan = async (b: BusinessRow, planLabel: string) => {
+    try {
+      const value = planLabel === "auto" ? null : planLabel;
+      const { error } = await supabase
+        .from("businesses")
+        .update({ plan_tier: value, updated_at: new Date().toISOString() })
+        .eq("id", b.id);
+      if (error) throw error;
+      toast({ title: "Plan updated", description: value ? `Set to ${value}.` : "Reverted to automatic (based on cashier count)." });
+      await refresh();
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Failed", description: e?.message ?? "Could not update plan" });
+    }
+  };
+
 
   const handleExportCsv = () => {
     exportBusinessesToCsv(businesses, 'zampos-businesses');
@@ -791,10 +809,37 @@ const AdminDashboard = () => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {statusBadge(b.subscription_status, b.is_locked)}
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="flex items-center gap-2">
+                            {b.plan_tier ? (
+                              <Badge variant="outline" className="text-xs">Plan: {b.plan_tier}</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs text-muted-foreground">Plan: Auto</Badge>
+                            )}
+                            {statusBadge(b.subscription_status, b.is_locked)}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs text-muted-foreground">Set plan</Label>
+                            <Select
+                              value={b.plan_tier ?? "auto"}
+                              onValueChange={(v) => setPlan(b, v)}
+                            >
+                              <SelectTrigger className="h-8 text-xs w-44">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="auto">Auto (by cashier count)</SelectItem>
+                                {PRICING_TIERS.map((t) => (
+                                  <SelectItem key={t.label} value={t.label}>
+                                    {t.label} — K{t.priceZmw}/mo
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       </div>
+
 
                       {/* Contact Details */}
                       {(b.phone || b.email || b.address) && (

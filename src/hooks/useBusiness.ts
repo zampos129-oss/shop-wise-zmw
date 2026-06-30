@@ -32,7 +32,9 @@ interface Business {
   vatRate: number;
   customTaxName?: string | null;
   customTaxRate?: number | null;
+  planTier?: string | null;
 }
+
 
 const mapBusinessRow = (row: BusinessRow): Business => ({
   id: row.id,
@@ -52,6 +54,8 @@ const mapBusinessRow = (row: BusinessRow): Business => ({
   vatRate: Number(row.vat_rate ?? 16),
   customTaxName: row.custom_tax_name,
   customTaxRate: row.custom_tax_rate != null ? Number(row.custom_tax_rate) : null,
+  planTier: (row as any).plan_tier ?? null,
+
 });
 
 export const useBusiness = (userId: string | undefined) => {

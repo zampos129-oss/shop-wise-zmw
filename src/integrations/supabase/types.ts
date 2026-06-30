@@ -263,6 +263,7 @@ export type Database = {
           name: string
           payment_code: string
           phone: string | null
+          plan_tier: string | null
           subscription_expires_at: string | null
           subscription_status: Database["public"]["Enums"]["subscription_status"]
           tax_mode: string
@@ -286,6 +287,7 @@ export type Database = {
           name: string
           payment_code: string
           phone?: string | null
+          plan_tier?: string | null
           subscription_expires_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           tax_mode?: string
@@ -309,6 +311,7 @@ export type Database = {
           name?: string
           payment_code?: string
           phone?: string | null
+          plan_tier?: string | null
           subscription_expires_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           tax_mode?: string
