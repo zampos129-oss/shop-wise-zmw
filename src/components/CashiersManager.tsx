@@ -18,12 +18,12 @@ interface Cashier {
   created_at: string;
 }
 
+import { getPricingTier } from '@/lib/paymentDetails';
+
 interface Props {
   businessId: string;
   paymentCode: string;
 }
-
-const MAX_CASHIERS = 3;
 
 const CashiersManager = ({ businessId, paymentCode }: Props) => {
   const { toast } = useToast();
