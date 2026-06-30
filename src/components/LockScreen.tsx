@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AlertTriangle, RefreshCw, MessageCircle, Phone, Copy } from 'lucide-react';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useToast } from '@/hooks/use-toast';
-import { PAYMENT_DETAILS, getPricingTier } from '@/lib/paymentDetails';
+import { PAYMENT_DETAILS, resolvePricingTier } from '@/lib/paymentDetails';
 import { supabase } from '@/integrations/supabase/client';
 
 interface LockScreenProps {
