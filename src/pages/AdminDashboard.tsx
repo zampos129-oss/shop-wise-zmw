@@ -318,6 +318,22 @@ const AdminDashboard = () => {
     }
   };
 
+  const setPlan = async (b: BusinessRow, planLabel: string) => {
+    try {
+      const value = planLabel === "auto" ? null : planLabel;
+      const { error } = await supabase
+        .from("businesses")
+        .update({ plan_tier: value, updated_at: new Date().toISOString() })
+        .eq("id", b.id);
+      if (error) throw error;
+      toast({ title: "Plan updated", description: value ? `Set to ${value}.` : "Reverted to automatic (based on cashier count)." });
+      await refresh();
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Failed", description: e?.message ?? "Could not update plan" });
+    }
+  };
+
+
   const handleExportCsv = () => {
     exportBusinessesToCsv(businesses, 'zampos-businesses');
     toast({ title: 'Exported', description: 'Businesses data downloaded as CSV' });
