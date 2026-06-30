@@ -202,21 +202,17 @@ const CashiersManager = ({ businessId, paymentCode }: Props) => {
           </ul>
         )}
 
-        {limitReached ? (
-          <div className="rounded-lg border border-dashed border-border p-3 text-sm text-center">
-            <p className="font-medium">You've reached the 3-cashier limit.</p>
-            <p className="text-muted-foreground mt-1">
-              <a className="text-primary hover:underline" href="https://wa.me/260000000000?text=Hi%20ZamPOS%2C%20I%27d%20like%20to%20add%20more%20cashiers" target="_blank" rel="noreferrer">
-                Contact us on WhatsApp
-              </a> to upgrade your plan.
-            </p>
-          </div>
-        ) : (
-          <Button variant="pos" className="w-full" onClick={() => setCreateOpen(true)} disabled={busy}>
-            <Plus className="h-4 w-4 mr-1" /> Add Cashier
-          </Button>
-        )}
+        <div className="rounded-lg border border-dashed border-border p-3 text-xs text-center text-muted-foreground">
+          Current plan: <span className="font-semibold text-foreground">{currentTier.label} — K{currentTier.priceZmw}/mo</span>.
+          {nextTier.priceZmw > currentTier.priceZmw && (
+            <> Adding another cashier moves you to <span className="font-semibold text-foreground">{nextTier.label} (K{nextTier.priceZmw}/mo)</span>.</>
+          )}
+        </div>
+        <Button variant="pos" className="w-full" onClick={() => setCreateOpen(true)} disabled={busy}>
+          <Plus className="h-4 w-4 mr-1" /> Add Cashier
+        </Button>
       </CardContent>
+
 
       {/* Create dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
