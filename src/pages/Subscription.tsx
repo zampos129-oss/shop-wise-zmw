@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { ArrowLeft, CreditCard, MessageCircle, Phone, Copy } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, CreditCard, MessageCircle, Phone, Copy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ConnectionStatus from "@/components/ConnectionStatus";
@@ -9,15 +9,17 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useBusiness } from "@/hooks/useBusiness";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useToast } from "@/hooks/use-toast";
-import { PAYMENT_DETAILS } from "@/lib/paymentDetails";
+import { PAYMENT_DETAILS, PRICING_TIERS, getPricingTier } from "@/lib/paymentDetails";
+import { supabase } from "@/integrations/supabase/client";
 
 const MONTH_OPTIONS = [1, 3, 6, 12];
 
-const buildWhatsAppRenewalLink = (paymentCode: string, months: number) => {
+const buildWhatsAppRenewalLink = (paymentCode: string, months: number, amount: number, cashiers: number) => {
   const message = [
     "Hello ZamPOS Team,",
     "",
-    `I want to renew my subscription for ${months} month${months > 1 ? "s" : ""} (ZMW ${months * PAYMENT_DETAILS.pricePerMonthZmw}).`,
+    `I want to renew my subscription for ${months} month${months > 1 ? "s" : ""} (ZMW ${amount}).`,
+    `Active cashiers: ${cashiers}`,
     `My Payment Code is: ${paymentCode}`,
     "",
     "Please send me mobile money payment details.",
@@ -33,6 +35,22 @@ const Subscription = () => {
   const { business, isLoading: bizLoading, refetch, checkSubscriptionStatus } = useBusiness(user?.id);
   const { isLocked, daysRemaining } = checkSubscriptionStatus();
   const [months, setMonths] = useState(1);
+  const [activeCashiers, setActiveCashiers] = useState(0);
+
+  useEffect(() => {
+    if (!business?.id) return;
+    void (async () => {
+      const { count } = await supabase
+        .from("business_cashiers")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", business.id)
+        .eq("is_active", true);
+      setActiveCashiers(count ?? 0);
+    })();
+  }, [business?.id]);
+
+  const tier = useMemo(() => getPricingTier(activeCashiers), [activeCashiers]);
+  const amountZmw = months * tier.priceZmw;
 
   if (!authLoading && !user) {
     navigate("/auth");
@@ -56,10 +74,8 @@ const Subscription = () => {
     );
   }
 
-  const amountZmw = months * PAYMENT_DETAILS.pricePerMonthZmw;
-
   const handleWhatsApp = () => {
-    window.open(buildWhatsAppRenewalLink(business.paymentCode, months), "_blank");
+    window.open(buildWhatsAppRenewalLink(business.paymentCode, months, amountZmw, activeCashiers), "_blank");
   };
 
   const copyNumber = () => {
@@ -94,15 +110,43 @@ const Subscription = () => {
                 Subscription Status
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center justify-between">
+            <CardContent className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="text-sm text-muted-foreground">Remaining days</p>
                 <p className="text-2xl font-display font-bold">{daysRemaining}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">Plan</p>
-                <p className="font-medium">ZMW {PAYMENT_DETAILS.pricePerMonthZmw} / 30 days</p>
+                <p className="text-sm text-muted-foreground">Current plan</p>
+                <p className="font-medium">{tier.label} · ZMW {tier.priceZmw}/mo</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end mt-1">
+                  <Users className="w-3 h-3" /> {activeCashiers} active cashier{activeCashiers === 1 ? "" : "s"}
+                </p>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Plans</CardTitle>
+              <CardDescription>Price scales with how many active cashiers you have.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
+                {PRICING_TIERS.map((t) => {
+                  const isCurrent = t.minCashiers === tier.minCashiers && t.maxCashiers === tier.maxCashiers;
+                  return (
+                    <li
+                      key={t.label}
+                      className={`flex items-center justify-between p-3 text-sm ${isCurrent ? "bg-primary/5" : ""}`}
+                    >
+                      <span className={isCurrent ? "font-semibold" : ""}>{t.label}</span>
+                      <span className={isCurrent ? "font-semibold text-primary" : "text-muted-foreground"}>
+                        K{t.priceZmw}/month
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
             </CardContent>
           </Card>
 
@@ -128,7 +172,7 @@ const Subscription = () => {
               </div>
 
               <div className="bg-muted/50 rounded-lg p-4 text-center space-y-1">
-                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-sm text-muted-foreground">Total ({months} × K{tier.priceZmw})</p>
                 <p className="text-3xl font-display font-bold text-primary">ZMW {amountZmw}</p>
               </div>
 
