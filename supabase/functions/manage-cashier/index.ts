@@ -125,15 +125,8 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (existing) return json({ error: "That username is already in use" }, 409);
 
-      // Pre-check cap to give a friendly error before creating auth user
-      const { count } = await admin
-        .from("business_cashiers")
-        .select("id", { count: "exact", head: true })
-        .eq("business_id", biz.id)
-        .eq("is_active", true);
-      if ((count ?? 0) >= 3) {
-        return json({ error: "CASHIER_LIMIT_REACHED", message: "You've reached the 3 cashier limit. Contact support to upgrade." }, 409);
-      }
+      // Cashier count is unlimited; subscription price scales with active cashiers.
+
 
       const email = internalEmail(biz.id, username);
       const password = pinPassword(pin);
@@ -229,13 +222,11 @@ Deno.serve(async (req) => {
         .update({ is_active: isActive })
         .eq("id", cashierId);
       if (uErr) {
-        const msg = uErr.message.includes("CASHIER_LIMIT_REACHED")
-          ? "You've reached the 3 active cashier limit."
-          : uErr.message;
-        return json({ error: msg }, 409);
+        return json({ error: uErr.message }, 409);
       }
       return json({ ok: true });
     }
+
 
     if (action === "delete") {
       const cashierId = String(body.cashier_id ?? "");

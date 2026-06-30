@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw, MessageCircle, Phone, Copy } from 'lucide-react';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useToast } from '@/hooks/use-toast';
-import { PAYMENT_DETAILS } from '@/lib/paymentDetails';
+import { PAYMENT_DETAILS, getPricingTier } from '@/lib/paymentDetails';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LockScreenProps {
   paymentCode: string;
@@ -17,11 +18,11 @@ interface LockScreenProps {
 
 const MONTH_OPTIONS = [1, 3, 6, 12];
 
-const buildWhatsAppRenewalLink = (paymentCode: string, months: number) => {
+const buildWhatsAppRenewalLink = (paymentCode: string, months: number, amount: number) => {
   const message = [
     'Hello ZamPOS Team,',
     '',
-    `I want to renew my subscription for ${months} month${months > 1 ? 's' : ''} (ZMW ${months * PAYMENT_DETAILS.pricePerMonthZmw}).`,
+    `I want to renew my subscription for ${months} month${months > 1 ? 's' : ''} (ZMW ${amount}).`,
     `My Payment Code is: ${paymentCode}`,
     '',
     'Please send me mobile money payment details.',
@@ -29,16 +30,30 @@ const buildWhatsAppRenewalLink = (paymentCode: string, months: number) => {
   return `https://wa.me/${PAYMENT_DETAILS.whatsappNumberE164}?text=${encodeURIComponent(message)}`;
 };
 
-const LockScreen = ({ paymentCode, daysExpired = 0, onRetrySync, isSyncing }: LockScreenProps) => {
+const LockScreen = ({ paymentCode, businessId, daysExpired = 0, onRetrySync, isSyncing }: LockScreenProps) => {
   const navigate = useNavigate();
   const { isOnline } = useOnlineStatus();
   const { toast } = useToast();
   const [months, setMonths] = useState(1);
+  const [activeCashiers, setActiveCashiers] = useState(0);
 
-  const amountZmw = months * PAYMENT_DETAILS.pricePerMonthZmw;
+  useEffect(() => {
+    if (!businessId) return;
+    void (async () => {
+      const { count } = await supabase
+        .from('business_cashiers')
+        .select('id', { count: 'exact', head: true })
+        .eq('business_id', businessId)
+        .eq('is_active', true);
+      setActiveCashiers(count ?? 0);
+    })();
+  }, [businessId]);
+
+  const tier = getPricingTier(activeCashiers);
+  const amountZmw = months * tier.priceZmw;
 
   const handleWhatsApp = () => {
-    window.open(buildWhatsAppRenewalLink(paymentCode, months), '_blank');
+    window.open(buildWhatsAppRenewalLink(paymentCode, months, amountZmw), '_blank');
   };
 
   const handlePaid = async () => {

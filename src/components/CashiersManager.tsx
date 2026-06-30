@@ -18,12 +18,12 @@ interface Cashier {
   created_at: string;
 }
 
+import { getPricingTier } from '@/lib/paymentDetails';
+
 interface Props {
   businessId: string;
   paymentCode: string;
 }
-
-const MAX_CASHIERS = 3;
 
 const CashiersManager = ({ businessId, paymentCode }: Props) => {
   const { toast } = useToast();
@@ -77,7 +77,8 @@ const CashiersManager = ({ businessId, paymentCode }: Props) => {
   }, []);
 
   const activeCount = cashiers.filter(c => c.is_active).length;
-  const limitReached = activeCount >= MAX_CASHIERS;
+  const currentTier = getPricingTier(activeCount);
+  const nextTier = getPricingTier(activeCount + 1);
 
   const handleCreate = async () => {
     const username = newUsername.trim().toLowerCase();
@@ -157,7 +158,7 @@ const CashiersManager = ({ businessId, paymentCode }: Props) => {
               Cashiers can sell at the till but can't edit products, stock, prices, expenses, debtors or settings.
             </CardDescription>
           </div>
-          <Badge variant={limitReached ? 'destructive' : 'secondary'}>{activeCount}/{MAX_CASHIERS}</Badge>
+          <Badge variant="secondary">{activeCount} active · K{currentTier.priceZmw}/mo</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -201,21 +202,17 @@ const CashiersManager = ({ businessId, paymentCode }: Props) => {
           </ul>
         )}
 
-        {limitReached ? (
-          <div className="rounded-lg border border-dashed border-border p-3 text-sm text-center">
-            <p className="font-medium">You've reached the 3-cashier limit.</p>
-            <p className="text-muted-foreground mt-1">
-              <a className="text-primary hover:underline" href="https://wa.me/260000000000?text=Hi%20ZamPOS%2C%20I%27d%20like%20to%20add%20more%20cashiers" target="_blank" rel="noreferrer">
-                Contact us on WhatsApp
-              </a> to upgrade your plan.
-            </p>
-          </div>
-        ) : (
-          <Button variant="pos" className="w-full" onClick={() => setCreateOpen(true)} disabled={busy}>
-            <Plus className="h-4 w-4 mr-1" /> Add Cashier
-          </Button>
-        )}
+        <div className="rounded-lg border border-dashed border-border p-3 text-xs text-center text-muted-foreground">
+          Current plan: <span className="font-semibold text-foreground">{currentTier.label} — K{currentTier.priceZmw}/mo</span>.
+          {nextTier.priceZmw > currentTier.priceZmw && (
+            <> Adding another cashier moves you to <span className="font-semibold text-foreground">{nextTier.label} (K{nextTier.priceZmw}/mo)</span>.</>
+          )}
+        </div>
+        <Button variant="pos" className="w-full" onClick={() => setCreateOpen(true)} disabled={busy}>
+          <Plus className="h-4 w-4 mr-1" /> Add Cashier
+        </Button>
       </CardContent>
+
 
       {/* Create dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
