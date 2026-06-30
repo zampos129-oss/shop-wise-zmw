@@ -44,8 +44,25 @@ export const getPricingTier = (activeCashiers: number): PricingTier => {
   );
 };
 
+/** Look up a tier by its display label (e.g. set by a super admin). */
+export const getPricingTierByLabel = (label?: string | null): PricingTier | null => {
+  if (!label) return null;
+  return PRICING_TIERS.find((t) => t.label === label) ?? null;
+};
+
+/**
+ * Resolve the effective tier for a business. An admin-assigned plan label always
+ * wins; otherwise we derive the tier from the active cashier count.
+ */
+export const resolvePricingTier = (
+  activeCashiers: number,
+  adminPlanLabel?: string | null,
+): PricingTier =>
+  getPricingTierByLabel(adminPlanLabel) ?? getPricingTier(activeCashiers);
+
 export const getMonthlyPriceForCashiers = (activeCashiers: number): number =>
   getPricingTier(activeCashiers).priceZmw;
+
 
 export const buildWhatsAppPaymentLink = (args: {
   paymentCode: string;
