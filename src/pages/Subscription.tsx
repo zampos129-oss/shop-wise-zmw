@@ -9,7 +9,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useBusiness } from "@/hooks/useBusiness";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useToast } from "@/hooks/use-toast";
-import { PAYMENT_DETAILS, PRICING_TIERS, getPricingTier } from "@/lib/paymentDetails";
+import { PAYMENT_DETAILS, PRICING_TIERS, resolvePricingTier } from "@/lib/paymentDetails";
 import { supabase } from "@/integrations/supabase/client";
 
 const MONTH_OPTIONS = [1, 3, 6, 12];
