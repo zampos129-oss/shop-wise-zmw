@@ -150,8 +150,15 @@ export const useBusiness = (userId: string | undefined) => {
       return;
     }
 
-    setIsLoading(true);
+    // Only show the "Loading…" state on first load. Background refetches
+    // (realtime updates, tab focus, network flap) must not flip isLoading
+    // true or every consumer page unmounts its dialogs / children.
+    setBusiness((prev) => {
+      if (!prev) setIsLoading(true);
+      return prev;
+    });
     setError(null);
+
 
     try {
       if (!isOnline) {

@@ -386,13 +386,19 @@ const Products = () => {
     }
   };
 
-  if (authLoading || bizLoading || productsLoading) {
+  const initialLoading =
+    (authLoading && !user) ||
+    (bizLoading && !business) ||
+    (productsLoading && products.length === 0);
+
+  if (initialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Loading…</p>
       </div>
     );
   }
+
 
   if (!business) return null;
 
@@ -419,21 +425,22 @@ const Products = () => {
         lastSyncError={null}
       />
       <div className="min-h-screen bg-background safe-area-inset">
-        <header className="bg-card border-b border-border px-4 py-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <header className="bg-card border-b border-border px-3 py-3 sm:px-4 sm:py-4">
+          <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate("/dashboard")}
                 aria-label="Back"
+                className="shrink-0"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div>
-                <h1 className="font-display font-bold text-lg flex items-center gap-2">
-                  {isService ? <Briefcase className="h-5 w-5" /> : <Package className="h-5 w-5" />}{" "}
-                  {labels.productsTitle}
+              <div className="min-w-0">
+                <h1 className="font-display font-bold text-base sm:text-lg flex items-center gap-2 truncate">
+                  {isService ? <Briefcase className="h-5 w-5 shrink-0" /> : <Package className="h-5 w-5 shrink-0" />}{" "}
+                  <span className="truncate">{labels.productsTitle}</span>
                 </h1>
                 <p className="text-xs text-muted-foreground">
                   {isOnline ? "Online" : "Offline (view only)"}
@@ -441,21 +448,25 @@ const Products = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCategoriesOpen(true)}
                 disabled={!isOnline}
+                aria-label="Categories"
               >
-                <Tag className="h-4 w-4 mr-2" /> Categories
+                <Tag className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Categories</span>
               </Button>
-              <Button variant="pos" size="sm" onClick={openCreate}>
-                <Plus className="h-4 w-4 mr-2" /> {labels.addButtonLabel}
+              <Button variant="pos" size="sm" onClick={openCreate} aria-label={labels.addButtonLabel}>
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{labels.addButtonLabel}</span>
               </Button>
             </div>
           </div>
         </header>
+
 
         <main className="p-4 max-w-4xl mx-auto space-y-4">
           {/* Inventory dashboard */}
