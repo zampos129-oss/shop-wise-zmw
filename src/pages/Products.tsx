@@ -386,13 +386,19 @@ const Products = () => {
     }
   };
 
-  if (authLoading || bizLoading || productsLoading) {
+  const initialLoading =
+    (authLoading && !user) ||
+    (bizLoading && !business) ||
+    (productsLoading && products.length === 0);
+
+  if (initialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Loading…</p>
       </div>
     );
   }
+
 
   if (!business) return null;
 
