@@ -175,6 +175,7 @@ export function useProducts(businessId: string | undefined) {
             minimumStock: p.minimumStock,
             category: p.category,
             isActive: p.isActive,
+            itemType: p.itemType,
             taxCategory: p.taxCategory,
             imageUrl: p.imageUrl,
             imagePath: p.imagePath,
