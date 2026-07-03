@@ -7,6 +7,8 @@ import type { Database } from "@/integrations/supabase/types";
 type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 type CachedProduct = Parameters<typeof cacheProducts>[0][number];
 
+export type ItemType = 'product' | 'service';
+
 export type Product = {
   id: string;
   businessId: string;
@@ -18,6 +20,7 @@ export type Product = {
   category: string | null;
   barcode: string | null;
   isActive: boolean;
+  itemType: ItemType;
   taxCategory: 'taxable' | 'zero_rated' | 'exempt';
   imageUrl: string | null;     // resolved signed URL ready for <img src>
   imagePath: string | null;    // raw storage path stored on the row
@@ -38,6 +41,7 @@ const mapRowToProduct = (row: ProductRow): Product => ({
   category: row.category,
   barcode: (row as any).barcode ?? null,
   isActive: row.is_active,
+  itemType: (((row as any).item_type ?? 'product') === 'service' ? 'service' : 'product'),
   taxCategory: (row.tax_category ?? 'taxable') as Product['taxCategory'],
   imageUrl: null,
   imagePath: (row as any).image_url ?? null,
@@ -58,6 +62,7 @@ const mapCachedProduct = (p: CachedProduct): Product => ({
   category: p.category ?? null,
   barcode: (p as any).barcode ?? null,
   isActive: p.isActive !== false,
+  itemType: (((p as any).itemType ?? 'product') === 'service' ? 'service' : 'product'),
   taxCategory: ((p as any).taxCategory ?? 'taxable') as Product['taxCategory'],
   imageUrl: (p as any).imageUrl ?? null,
   imagePath: (p as any).imagePath ?? null,
@@ -148,7 +153,7 @@ export function useProducts(businessId: string | undefined) {
 
         const { data, error: fetchError } = await supabase
           .from("products")
-          .select("id, business_id, name, price, cost_price, stock, minimum_stock, category, is_active, tax_category, image_url, parent_id, variant_label, created_at, updated_at")
+          .select("id, business_id, name, price, cost_price, stock, minimum_stock, category, is_active, tax_category, image_url, parent_id, variant_label, item_type, created_at, updated_at")
           .eq("business_id", businessId)
           .order("created_at", { ascending: false })
           .limit(5000);
@@ -170,6 +175,7 @@ export function useProducts(businessId: string | undefined) {
             minimumStock: p.minimumStock,
             category: p.category,
             isActive: p.isActive,
+            itemType: p.itemType,
             taxCategory: p.taxCategory,
             imageUrl: p.imageUrl,
             imagePath: p.imagePath,

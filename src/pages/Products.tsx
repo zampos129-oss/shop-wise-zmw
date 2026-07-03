@@ -66,7 +66,7 @@ const Products = () => {
   const { isSyncing: stockSyncing, pendingCount: stockPending, syncNow: syncStockNow } = useStockSync(
     business?.id
   );
-  const { labels, isService } = useBusinessType(business?.id);
+  const { labels, isService, isHybrid } = useBusinessType(business?.id);
   const {
     categories,
     refetch: refetchCategories,
@@ -95,6 +95,7 @@ const Products = () => {
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [barcode, setBarcode] = useState("");
+  const [itemType, setItemType] = useState<"product" | "service">(isService ? "service" : "product");
 
   // New-category input inside the "Manage categories" dialog
   const [pendingNewCategory, setPendingNewCategory] = useState("");
@@ -150,6 +151,7 @@ const Products = () => {
     setImagePath(null);
     setImageUrl(null);
     setBarcode("");
+    setItemType(isService ? "service" : "product");
     setEditing(null);
   };
 
@@ -171,6 +173,7 @@ const Products = () => {
     setImagePath(p.imagePath);
     setImageUrl(p.imageUrl);
     setBarcode(p.barcode ?? "");
+    setItemType(p.itemType ?? (isService ? "service" : "product"));
     setOpen(true);
   };
 
@@ -222,16 +225,20 @@ const Products = () => {
     try {
       const categoryValue = await resolveCategoryValue();
 
+      const resolvedItemType = isHybrid ? itemType : isService ? "service" : "product";
+      const isServiceItem = resolvedItemType === "service";
+
       const payload = {
         name: name.trim(),
         price: priceNum,
         cost_price: costNum,
-        stock: stockNum,
-        minimum_stock: minStockNum,
+        stock: isServiceItem ? 0 : stockNum,
+        minimum_stock: isServiceItem ? 0 : minStockNum,
         category: categoryValue,
         tax_category: taxCategory,
         image_url: imagePath,
         barcode: barcode.trim() || null,
+        item_type: resolvedItemType,
       };
 
       if (editing) {
@@ -508,6 +515,8 @@ const Products = () => {
                       {prods.map((p) => {
                         const vars = variantsByParent[p.id] ?? [];
                         const hasVariants = vars.length > 0;
+                        const rowIsService = p.itemType === "service";
+                        const showRowStock = labels.showStock && !rowIsService;
                         return (
                           <div key={p.id} className="space-y-1 ml-2">
                             <div className="flex items-center justify-between bg-secondary rounded-lg p-3">
@@ -520,7 +529,7 @@ const Products = () => {
                                   />
                                 ) : (
                                   <div className="h-12 w-12 rounded bg-muted flex items-center justify-center shrink-0">
-                                    {isService ? (
+                                    {rowIsService || isService ? (
                                       <Briefcase className="h-5 w-5 text-muted-foreground" />
                                     ) : (
                                       <Package className="h-5 w-5 text-muted-foreground" />
@@ -530,12 +539,17 @@ const Products = () => {
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <p className="font-medium truncate">{p.name}</p>
+                                    {isHybrid && (
+                                      <Badge variant="outline" className="text-[10px]">
+                                        {rowIsService ? "Service" : "Product"}
+                                      </Badge>
+                                    )}
                                     {hasVariants && (
                                       <Badge variant="outline" className="text-xs">
                                         {vars.length} variant{vars.length === 1 ? "" : "s"}
                                       </Badge>
                                     )}
-                                    {!hasVariants && labels.showStock && p.stock <= p.minimumStock && (
+                                    {!hasVariants && showRowStock && p.stock <= p.minimumStock && (
                                       <Badge variant="destructive" className="text-xs flex items-center gap-1">
                                         <AlertTriangle className="h-3 w-3" /> {labels.lowStockWarning}
                                       </Badge>
@@ -549,14 +563,14 @@ const Products = () => {
                                     {p.costPrice && !hasVariants
                                       ? ` • Cost K ${p.costPrice.toFixed(2)}`
                                       : ""}
-                                    {labels.showStock && !hasVariants
+                                    {showRowStock && !hasVariants
                                       ? ` • ${labels.stockDisplay(p.stock ?? 0)}`
                                       : ""}
                                   </p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1 shrink-0">
-                                {labels.showStock && !hasVariants && (
+                                {showRowStock && !hasVariants && (
                                   <Button
                                     variant="outline"
                                     size="icon"
@@ -648,8 +662,8 @@ const Products = () => {
           <DialogHeader>
             <DialogTitle>
               {editing
-                ? `Edit ${isService ? "Service" : "Product"}`
-                : `Add ${isService ? "Service" : "Product"}`}
+                ? `Edit ${itemType === "service" ? "Service" : "Product"}`
+                : `Add ${itemType === "service" ? "Service" : "Product"}`}
             </DialogTitle>
             <DialogDescription>
               {isOnline ? "" : "Connect to internet to save changes."}
@@ -657,6 +671,32 @@ const Products = () => {
           </DialogHeader>
 
           <div className="space-y-3">
+            {isHybrid && (
+              <div className="space-y-2">
+                <Label>Type</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={itemType === "product" ? "pos" : "outline"}
+                    onClick={() => setItemType("product")}
+                    className="justify-start"
+                  >
+                    <Package className="h-4 w-4 mr-2" /> Product
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={itemType === "service" ? "pos" : "outline"}
+                    onClick={() => setItemType("service")}
+                    className="justify-start"
+                  >
+                    <Briefcase className="h-4 w-4 mr-2" /> Service
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Services skip stock tracking.
+                </p>
+              </div>
+            )}
             {/* Image */}
             {business && (
               <div className="space-y-2">
@@ -714,7 +754,7 @@ const Products = () => {
             </div>
 
 
-            {labels.showStock && (!editing || !(variantsByParent[editing.id]?.length)) && (
+            {labels.showStock && itemType !== "service" && (!editing || !(variantsByParent[editing.id]?.length)) && (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>{labels.stockLabel}</Label>

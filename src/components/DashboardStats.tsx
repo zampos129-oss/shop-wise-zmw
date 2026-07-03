@@ -62,7 +62,7 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
         ? Promise.resolve({ data: [] as any[] })
         : supabase
             .from('products')
-            .select('stock, minimum_stock')
+            .select('stock, minimum_stock, item_type')
             .eq('business_id', businessId)
             .eq('is_active', true),
     ]);
@@ -73,6 +73,7 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
     const products = (productsRes.data || []) as Array<{
       stock: number;
       minimum_stock: number;
+      item_type?: string | null;
     }>;
 
     const businessExpensesToday = expenses
@@ -84,7 +85,9 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
 
     const lowStockCount = isService
       ? 0
-      : products.filter((p) => Number(p.stock) <= Number(p.minimum_stock)).length;
+      : products.filter(
+          (p) => (p.item_type ?? 'product') !== 'service' && Number(p.stock) <= Number(p.minimum_stock),
+        ).length;
 
     setStats({
       todayRevenue: sales.reduce((sum, s) => sum + Number(s.total), 0),

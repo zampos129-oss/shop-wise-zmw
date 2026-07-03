@@ -541,7 +541,7 @@ const Pos = () => {
                                     <div className="min-w-0">
                                       <p className="font-medium truncate">{displayName}</p>
                                       <p className="text-xs text-muted-foreground">
-                                        ZMW {(p.price ?? 0).toFixed(2)} {labels.showStock ? `• ${labels.stockDisplay(p.stock ?? 0)}` : ''}
+                                        ZMW {(p.price ?? 0).toFixed(2)} {labels.showStock && p.itemType !== 'service' ? `• ${labels.stockDisplay(p.stock ?? 0)}` : ''}
                                       </p>
                                     </div>
                                   </div>
