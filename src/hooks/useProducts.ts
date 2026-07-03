@@ -153,7 +153,7 @@ export function useProducts(businessId: string | undefined) {
 
         const { data, error: fetchError } = await supabase
           .from("products")
-          .select("id, business_id, name, price, cost_price, stock, minimum_stock, category, is_active, tax_category, image_url, parent_id, variant_label, created_at, updated_at")
+          .select("id, business_id, name, price, cost_price, stock, minimum_stock, category, is_active, tax_category, image_url, parent_id, variant_label, item_type, created_at, updated_at")
           .eq("business_id", businessId)
           .order("created_at", { ascending: false })
           .limit(5000);
