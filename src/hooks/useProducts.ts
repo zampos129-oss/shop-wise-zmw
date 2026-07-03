@@ -41,6 +41,7 @@ const mapRowToProduct = (row: ProductRow): Product => ({
   category: row.category,
   barcode: (row as any).barcode ?? null,
   isActive: row.is_active,
+  itemType: (((row as any).item_type ?? 'product') === 'service' ? 'service' : 'product'),
   taxCategory: (row.tax_category ?? 'taxable') as Product['taxCategory'],
   imageUrl: null,
   imagePath: (row as any).image_url ?? null,
