@@ -62,6 +62,7 @@ const mapCachedProduct = (p: CachedProduct): Product => ({
   category: p.category ?? null,
   barcode: (p as any).barcode ?? null,
   isActive: p.isActive !== false,
+  itemType: (((p as any).itemType ?? 'product') === 'service' ? 'service' : 'product'),
   taxCategory: ((p as any).taxCategory ?? 'taxable') as Product['taxCategory'],
   imageUrl: (p as any).imageUrl ?? null,
   imagePath: (p as any).imagePath ?? null,
