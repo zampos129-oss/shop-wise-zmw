@@ -747,7 +747,7 @@ const Products = () => {
             </div>
 
 
-            {labels.showStock && (!editing || !(variantsByParent[editing.id]?.length)) && (
+            {labels.showStock && itemType !== "service" && (!editing || !(variantsByParent[editing.id]?.length)) && (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>{labels.stockLabel}</Label>
