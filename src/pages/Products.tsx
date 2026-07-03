@@ -66,7 +66,7 @@ const Products = () => {
   const { isSyncing: stockSyncing, pendingCount: stockPending, syncNow: syncStockNow } = useStockSync(
     business?.id
   );
-  const { labels, isService } = useBusinessType(business?.id);
+  const { labels, isService, isHybrid } = useBusinessType(business?.id);
   const {
     categories,
     refetch: refetchCategories,
