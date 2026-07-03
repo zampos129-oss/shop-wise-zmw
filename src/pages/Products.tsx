@@ -173,6 +173,7 @@ const Products = () => {
     setImagePath(p.imagePath);
     setImageUrl(p.imageUrl);
     setBarcode(p.barcode ?? "");
+    setItemType(p.itemType ?? (isService ? "service" : "product"));
     setOpen(true);
   };
 
