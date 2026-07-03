@@ -655,8 +655,8 @@ const Products = () => {
           <DialogHeader>
             <DialogTitle>
               {editing
-                ? `Edit ${isService ? "Service" : "Product"}`
-                : `Add ${isService ? "Service" : "Product"}`}
+                ? `Edit ${itemType === "service" ? "Service" : "Product"}`
+                : `Add ${itemType === "service" ? "Service" : "Product"}`}
             </DialogTitle>
             <DialogDescription>
               {isOnline ? "" : "Connect to internet to save changes."}
