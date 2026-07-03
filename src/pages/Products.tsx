@@ -151,6 +151,7 @@ const Products = () => {
     setImagePath(null);
     setImageUrl(null);
     setBarcode("");
+    setItemType(isService ? "service" : "product");
     setEditing(null);
   };
 
