@@ -515,6 +515,8 @@ const Products = () => {
                       {prods.map((p) => {
                         const vars = variantsByParent[p.id] ?? [];
                         const hasVariants = vars.length > 0;
+                        const rowIsService = p.itemType === "service";
+                        const showRowStock = labels.showStock && !rowIsService;
                         return (
                           <div key={p.id} className="space-y-1 ml-2">
                             <div className="flex items-center justify-between bg-secondary rounded-lg p-3">
@@ -527,7 +529,7 @@ const Products = () => {
                                   />
                                 ) : (
                                   <div className="h-12 w-12 rounded bg-muted flex items-center justify-center shrink-0">
-                                    {isService ? (
+                                    {rowIsService || isService ? (
                                       <Briefcase className="h-5 w-5 text-muted-foreground" />
                                     ) : (
                                       <Package className="h-5 w-5 text-muted-foreground" />
@@ -537,12 +539,17 @@ const Products = () => {
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <p className="font-medium truncate">{p.name}</p>
+                                    {isHybrid && (
+                                      <Badge variant="outline" className="text-[10px]">
+                                        {rowIsService ? "Service" : "Product"}
+                                      </Badge>
+                                    )}
                                     {hasVariants && (
                                       <Badge variant="outline" className="text-xs">
                                         {vars.length} variant{vars.length === 1 ? "" : "s"}
                                       </Badge>
                                     )}
-                                    {!hasVariants && labels.showStock && p.stock <= p.minimumStock && (
+                                    {!hasVariants && showRowStock && p.stock <= p.minimumStock && (
                                       <Badge variant="destructive" className="text-xs flex items-center gap-1">
                                         <AlertTriangle className="h-3 w-3" /> {labels.lowStockWarning}
                                       </Badge>
@@ -556,14 +563,14 @@ const Products = () => {
                                     {p.costPrice && !hasVariants
                                       ? ` • Cost K ${p.costPrice.toFixed(2)}`
                                       : ""}
-                                    {labels.showStock && !hasVariants
+                                    {showRowStock && !hasVariants
                                       ? ` • ${labels.stockDisplay(p.stock ?? 0)}`
                                       : ""}
                                   </p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1 shrink-0">
-                                {labels.showStock && !hasVariants && (
+                                {showRowStock && !hasVariants && (
                                   <Button
                                     variant="outline"
                                     size="icon"
