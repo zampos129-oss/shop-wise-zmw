@@ -25,13 +25,13 @@ const LowStockAlert = ({ businessId }: LowStockAlertProps) => {
 
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, stock, minimum_stock')
+        .select('id, name, stock, minimum_stock, item_type')
         .eq('business_id', businessId)
         .eq('is_active', true);
 
       if (!error && data) {
         const lowStock = data
-          .filter((p: any) => Number(p.stock) <= Number(p.minimum_stock || 5))
+          .filter((p: any) => (p.item_type ?? 'product') !== 'service' && Number(p.stock) <= Number(p.minimum_stock || 5))
           .map((p: any) => ({
             id: p.id,
             name: p.name,
