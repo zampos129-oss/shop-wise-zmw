@@ -664,6 +664,32 @@ const Products = () => {
           </DialogHeader>
 
           <div className="space-y-3">
+            {isHybrid && (
+              <div className="space-y-2">
+                <Label>Type</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={itemType === "product" ? "pos" : "outline"}
+                    onClick={() => setItemType("product")}
+                    className="justify-start"
+                  >
+                    <Package className="h-4 w-4 mr-2" /> Product
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={itemType === "service" ? "pos" : "outline"}
+                    onClick={() => setItemType("service")}
+                    className="justify-start"
+                  >
+                    <Briefcase className="h-4 w-4 mr-2" /> Service
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Services skip stock tracking.
+                </p>
+              </div>
+            )}
             {/* Image */}
             {business && (
               <div className="space-y-2">
