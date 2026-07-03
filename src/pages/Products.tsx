@@ -95,6 +95,7 @@ const Products = () => {
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [barcode, setBarcode] = useState("");
+  const [itemType, setItemType] = useState<"product" | "service">(isService ? "service" : "product");
 
   // New-category input inside the "Manage categories" dialog
   const [pendingNewCategory, setPendingNewCategory] = useState("");
