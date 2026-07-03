@@ -7,6 +7,8 @@ import type { Database } from "@/integrations/supabase/types";
 type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 type CachedProduct = Parameters<typeof cacheProducts>[0][number];
 
+export type ItemType = 'product' | 'service';
+
 export type Product = {
   id: string;
   businessId: string;
@@ -18,6 +20,7 @@ export type Product = {
   category: string | null;
   barcode: string | null;
   isActive: boolean;
+  itemType: ItemType;
   taxCategory: 'taxable' | 'zero_rated' | 'exempt';
   imageUrl: string | null;     // resolved signed URL ready for <img src>
   imagePath: string | null;    // raw storage path stored on the row
