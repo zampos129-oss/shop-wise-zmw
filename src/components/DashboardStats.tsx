@@ -62,7 +62,7 @@ const DashboardStats = ({ businessId, isService }: DashboardStatsProps) => {
         ? Promise.resolve({ data: [] as any[] })
         : supabase
             .from('products')
-            .select('stock, minimum_stock')
+            .select('stock, minimum_stock, item_type')
             .eq('business_id', businessId)
             .eq('is_active', true),
     ]);
