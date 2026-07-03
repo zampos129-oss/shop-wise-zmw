@@ -225,16 +225,20 @@ const Products = () => {
     try {
       const categoryValue = await resolveCategoryValue();
 
+      const resolvedItemType = isHybrid ? itemType : isService ? "service" : "product";
+      const isServiceItem = resolvedItemType === "service";
+
       const payload = {
         name: name.trim(),
         price: priceNum,
         cost_price: costNum,
-        stock: stockNum,
-        minimum_stock: minStockNum,
+        stock: isServiceItem ? 0 : stockNum,
+        minimum_stock: isServiceItem ? 0 : minStockNum,
         category: categoryValue,
         tax_category: taxCategory,
         image_url: imagePath,
         barcode: barcode.trim() || null,
+        item_type: resolvedItemType,
       };
 
       if (editing) {
