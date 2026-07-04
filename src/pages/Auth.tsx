@@ -139,7 +139,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+        redirectTo: `${getAppUrl()}/auth?reset=true`,
       });
 
       if (error) {
@@ -604,6 +604,7 @@ const Auth = () => {
                         <SelectContent>
                           <SelectItem value="retail">Retail / Shop</SelectItem>
                           <SelectItem value="service">Service Business</SelectItem>
+                          <SelectItem value="hybrid">Both (Products & Services)</SelectItem>
                           <SelectItem value="restaurant">Restaurant / Food</SelectItem>
                           <SelectItem value="wholesale">Wholesale</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
