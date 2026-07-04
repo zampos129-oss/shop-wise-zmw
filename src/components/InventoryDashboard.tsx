@@ -21,13 +21,15 @@ const InventoryDashboard = ({ products, stockOnly = false }: Props) => {
     const sellable = products.filter(
       (p) => p.isActive && !parentIds.has(p.id)
     );
+    // Services don't track stock; keep them in item count but exclude from stock stats.
+    const stocked = sellable.filter((p) => p.itemType !== "service");
 
     let costValue = 0;
     let retailValue = 0;
     let lowStock = 0;
     let outOfStock = 0;
 
-    for (const p of sellable) {
+    for (const p of stocked) {
       const stock = p.stock ?? 0;
       const cost = p.costPrice ?? 0;
       const price = p.price ?? 0;

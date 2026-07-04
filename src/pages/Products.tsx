@@ -814,14 +814,19 @@ const Products = () => {
               </Select>
             </div>
 
-            {/* Variants — only when editing a top-level product */}
-            {editing && !editing.parentId && (
+            {/* Variants — only for products (not services), on the top-level row */}
+            {itemType !== "service" && editing && !editing.parentId && (
               <VariantsManager
                 parent={editing}
                 variants={variantsByParent[editing.id] ?? []}
                 onChanged={refetch}
                 disabled={!isOnline}
               />
+            )}
+            {itemType !== "service" && !editing && (
+              <p className="text-xs text-muted-foreground border rounded-md p-2 bg-muted/30">
+                Tip: Save this product first, then reopen it to add variants (e.g. 500ml / 1L / 2L).
+              </p>
             )}
 
             <Button
