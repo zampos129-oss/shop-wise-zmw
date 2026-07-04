@@ -96,7 +96,8 @@ export const useAuth = () => {
   }, [applySession, resolveRole]);
 
   const signUp = async (email: string, password: string, fullName: string, businessName: string, phone?: string, address?: string, affiliateCode?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const { getAppUrl } = await import('@/lib/appUrl');
+    const redirectUrl = `${getAppUrl()}/`;
     const { error } = await supabase.auth.signUp({
       email,
       password,

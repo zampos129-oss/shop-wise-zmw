@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getAppUrl } from '@/lib/appUrl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -139,7 +140,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+        redirectTo: `${getAppUrl()}/auth?reset=true`,
       });
 
       if (error) {
@@ -604,6 +605,7 @@ const Auth = () => {
                         <SelectContent>
                           <SelectItem value="retail">Retail / Shop</SelectItem>
                           <SelectItem value="service">Service Business</SelectItem>
+                          <SelectItem value="hybrid">Both (Products & Services)</SelectItem>
                           <SelectItem value="restaurant">Restaurant / Food</SelectItem>
                           <SelectItem value="wholesale">Wholesale</SelectItem>
                           <SelectItem value="other">Other</SelectItem>

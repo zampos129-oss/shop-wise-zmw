@@ -150,7 +150,7 @@ const Pos = () => {
     const displayName = p.variantLabel ? `${p.name} · ${p.variantLabel}` : p.name;
     const existing = cart.find((l) => l.productId === productId);
     const nextQty = (existing?.quantity ?? 0) + 1;
-    if (nextQty > (p.stock ?? 0)) {
+    if (p.itemType !== 'service' && nextQty > (p.stock ?? 0)) {
       toast({ variant: "destructive", title: "Not enough stock", description: `${displayName} has only ${p.stock ?? 0} left.` });
       return;
     }
