@@ -305,12 +305,25 @@ const AdminDashboard = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from("businesses")
-        .delete()
-        .eq("id", b.id);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error("Not authenticated");
 
-      if (error) throw error;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delete-business`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ business_id: b.id }),
+        }
+      );
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Could not delete business");
+
       toast({ title: "Business Deleted", description: `${b.name} has been permanently deleted.` });
       await refresh();
     } catch (e: any) {
