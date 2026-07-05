@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -12,7 +12,10 @@ import {
   Briefcase,
   Tag,
   X,
+  Download,
+  Upload,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -82,6 +85,8 @@ const Products = () => {
   const [adjustmentType, setAdjustmentType] = useState<"add" | "subtract">("add");
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -393,6 +398,176 @@ const Products = () => {
     }
   };
 
+  const exportCsv = () => {
+    const rows = products.filter((p) => p.isActive);
+    const headers = [
+      "name",
+      "item_type",
+      "price",
+      "cost_price",
+      "stock",
+      "minimum_stock",
+      "category",
+      "barcode",
+      "tax_category",
+    ];
+    const esc = (v: unknown) => {
+      const s = v === null || v === undefined ? "" : String(v);
+      return `"${s.replace(/"/g, '""')}"`;
+    };
+    const csv = [
+      headers.join(","),
+      ...rows.map((p) =>
+        [
+          p.name,
+          p.itemType,
+          p.price,
+          p.costPrice ?? "",
+          p.itemType === "service" ? "" : p.stock,
+          p.itemType === "service" ? "" : p.minimumStock,
+          p.category ?? "",
+          p.barcode ?? "",
+          p.taxCategory,
+        ]
+          .map(esc)
+          .join(",")
+      ),
+    ].join("\n");
+    const label = isService ? "services" : "products";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${label}-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported", description: `${rows.length} ${label}` });
+  };
+
+  const downloadTemplate = () => {
+    const headers =
+      "name,item_type,price,cost_price,stock,minimum_stock,category,barcode,tax_category";
+    const example = isService
+      ? `"Haircut","service",50,,,,"Salon",,"taxable"`
+      : `"Cooking Oil 1L","product",45,30,20,5,"Groceries","1234567890","taxable"`;
+    const csv = `${headers}\n${example}\n`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "import-template.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const parseCsv = (text: string): Record<string, string>[] => {
+    const rows: string[][] = [];
+    let cur: string[] = [];
+    let field = "";
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (text[i + 1] === '"') {
+            field += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          field += c;
+        }
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ",") {
+          cur.push(field);
+          field = "";
+        } else if (c === "\n" || c === "\r") {
+          if (field.length || cur.length) {
+            cur.push(field);
+            rows.push(cur);
+            cur = [];
+            field = "";
+          }
+          if (c === "\r" && text[i + 1] === "\n") i++;
+        } else {
+          field += c;
+        }
+      }
+    }
+    if (field.length || cur.length) {
+      cur.push(field);
+      rows.push(cur);
+    }
+    if (rows.length === 0) return [];
+    const headers = rows[0].map((h) => h.trim().toLowerCase());
+    return rows.slice(1).map((r) => {
+      const obj: Record<string, string> = {};
+      headers.forEach((h, idx) => {
+        obj[h] = (r[idx] ?? "").trim();
+      });
+      return obj;
+    });
+  };
+
+  const importCsv = async (file: File) => {
+    if (!business || !isOnline) {
+      toast({ variant: "destructive", title: "Offline", description: "Connect to internet to import." });
+      return;
+    }
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const rows = parseCsv(text).filter((r) => (r.name ?? "").trim());
+      if (!rows.length) {
+        toast({ variant: "destructive", title: "Empty file", description: "No rows found." });
+        return;
+      }
+      const payloads = rows.map((r) => {
+        const itemTypeVal = (r.item_type || (isService ? "service" : "product")).toLowerCase();
+        const isServiceRow = itemTypeVal === "service";
+        const num = (v: string) => {
+          const n = parseFloat(v);
+          return Number.isFinite(n) ? n : 0;
+        };
+        const tax = ["taxable", "zero_rated", "exempt"].includes(r.tax_category)
+          ? r.tax_category
+          : "taxable";
+        return {
+          business_id: business.id,
+          is_active: true,
+          name: r.name.trim(),
+          price: num(r.price),
+          cost_price: r.cost_price ? num(r.cost_price) : null,
+          stock: isServiceRow ? 0 : Math.max(0, Math.floor(num(r.stock))),
+          minimum_stock: isServiceRow ? 0 : Math.max(0, Math.floor(num(r.minimum_stock || "5"))),
+          category: r.category || null,
+          barcode: r.barcode || null,
+          tax_category: tax,
+          item_type: isServiceRow ? "service" : "product",
+        };
+      });
+      const { error } = await supabase.from("products").insert(payloads);
+      if (error) throw error;
+      toast({ title: "Imported", description: `${payloads.length} item(s) added.` });
+      await refetch();
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Import failed",
+        description: e instanceof Error ? e.message : "Could not import file",
+      });
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const initialLoading =
     (authLoading && !user) ||
     (bizLoading && !business) ||
@@ -455,7 +630,49 @@ const Products = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void importCsv(f);
+                }}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportCsv}
+                disabled={products.length === 0}
+                aria-label="Export CSV"
+                title="Export all items to CSV"
+              >
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Export</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!isOnline || importing}
+                aria-label="Import CSV"
+                title="Import items from CSV"
+              >
+                <Upload className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{importing ? "Importing…" : "Import"}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={downloadTemplate}
+                aria-label="Download template"
+                title="Download CSV template"
+                className="hidden sm:inline-flex"
+              >
+                Template
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
