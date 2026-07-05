@@ -12,7 +12,10 @@ import {
   Briefcase,
   Tag,
   X,
+  Download,
+  Upload,
 } from "lucide-react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
