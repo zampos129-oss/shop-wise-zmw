@@ -630,7 +630,49 @@ const Products = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void importCsv(f);
+                }}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportCsv}
+                disabled={products.length === 0}
+                aria-label="Export CSV"
+                title="Export all items to CSV"
+              >
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Export</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!isOnline || importing}
+                aria-label="Import CSV"
+                title="Import items from CSV"
+              >
+                <Upload className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{importing ? "Importing…" : "Import"}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={downloadTemplate}
+                aria-label="Download template"
+                title="Download CSV template"
+                className="hidden sm:inline-flex"
+              >
+                Template
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
