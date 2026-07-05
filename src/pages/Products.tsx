@@ -85,6 +85,8 @@ const Products = () => {
   const [adjustmentType, setAdjustmentType] = useState<"add" | "subtract">("add");
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [name, setName] = useState("");
