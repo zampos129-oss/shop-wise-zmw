@@ -24,7 +24,7 @@ function normalizeEmail(value: unknown): string | null {
   return email;
 }
 
-async function findAuthUserIdsByEmail(admin: ReturnType<typeof createClient>, email: string) {
+async function findAuthUserIdsByEmail(admin: any, email: string) {
   const found = new Set<string>();
 
   for (let page = 1; page <= 20; page += 1) {
@@ -41,7 +41,7 @@ async function findAuthUserIdsByEmail(admin: ReturnType<typeof createClient>, em
   return [...found];
 }
 
-async function deleteAuthUsers(admin: ReturnType<typeof createClient>, userIds: string[]) {
+async function deleteAuthUsers(admin: any, userIds: string[]) {
   for (const userId of [...new Set(userIds.filter(Boolean))]) {
     const { error } = await admin.auth.admin.deleteUser(userId);
     if (error) throw new Error(`Failed to delete account ${userId}: ${error.message}`);
