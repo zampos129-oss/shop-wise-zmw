@@ -24,19 +24,29 @@ export const useAuth = () => {
   const initialCheckDone = useRef(false);
   const authEventHandled = useRef(false);
 
-  const resolveRole = useCallback(async (userId: string) => {
-    try {
-      const { data, error } = await supabase.rpc('get_my_role');
-      if (error) {
-        console.warn('get_my_role failed:', error);
-        return { role: 'unknown' as UserRole, isSuperAdmin: false };
+  const resolveRole = useCallback(async (_userId: string) => {
+    // Retry a couple of times to survive transient "Failed to fetch" during
+    // PWA boot / cold network wake-up. Backoff is intentionally short so the
+    // UI doesn't get stuck on the loading screen.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const { data, error } = await supabase.rpc('get_my_role');
+        if (!error) {
+          const role = (data as UserRole) || 'unknown';
+          return { role, isSuperAdmin: role === 'super_admin' };
+        }
+        // Only retry on network-ish errors; log others once and bail.
+        const msg = String(error?.message || '');
+        if (!/fetch|network|timeout/i.test(msg)) {
+          console.warn('get_my_role failed:', error);
+          return { role: 'unknown' as UserRole, isSuperAdmin: false };
+        }
+      } catch (e) {
+        if (attempt === 2) console.warn('resolveRole error:', e);
       }
-      const role = (data as UserRole) || 'unknown';
-      return { role, isSuperAdmin: role === 'super_admin' };
-    } catch (e) {
-      console.warn('resolveRole error:', e);
-      return { role: 'unknown' as UserRole, isSuperAdmin: false };
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
     }
+    return { role: 'unknown' as UserRole, isSuperAdmin: false };
   }, []);
 
   const applySession = useCallback((session: Session | null, isLoading = false) => {
