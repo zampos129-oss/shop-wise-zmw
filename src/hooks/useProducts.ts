@@ -165,11 +165,16 @@ export function useProducts(businessId: string | undefined) {
           .select("id, business_id, name, price, cost_price, stock, minimum_stock, category, is_active, tax_category, image_url, parent_id, variant_label, item_type, created_at, updated_at")
           .eq("business_id", businessId)
           .order("created_at", { ascending: false })
-          .limit(5000);
+          .limit(25000);
 
         if (fetchError) throw fetchError;
 
         const mapped = (data ?? []).map(mapRowToProduct);
+        // Render immediately without image URLs so 20k+ catalogs paint fast;
+        // signed URLs resolve in the background and swap in when ready.
+        setProducts(mapped);
+        setIsLoading(false);
+
         const withUrls = await resolveImageUrls(mapped);
         setProducts(withUrls);
 
