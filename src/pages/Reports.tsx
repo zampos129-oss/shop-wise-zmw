@@ -57,7 +57,8 @@ const Reports = () => {
       supabase
         .from("debtors")
         .select("id, balance_due, status")
-        .eq("business_id", business.id),
+        .eq("business_id", business.id)
+        .limit(5000),
     ]);
     setSales(s ?? []);
     setExpenses(e ?? []);
@@ -68,16 +69,18 @@ const Reports = () => {
   useEffect(() => {
     void fetchAll();
     if (!business?.id) return;
-    const channel = supabase
-      .channel(`reports-${business.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "sales", filter: `business_id=eq.${business.id}` }, () => { void fetchAll(); })
-      .on("postgres_changes", { event: "*", schema: "public", table: "expenses", filter: `business_id=eq.${business.id}` }, () => { void fetchAll(); })
-      .subscribe();
-    const onSync = () => { void fetchAll(); };
-    window.addEventListener("zampos:sync-complete", onSync);
+    // Realtime is centralised in AppSyncManager; subscribe to its window events
+    // instead of opening another postgres_changes channel per Reports mount.
+    const onChange = () => { void fetchAll(); };
+    window.addEventListener("zampos:sales-changed", onChange);
+    window.addEventListener("zampos:expenses-changed", onChange);
+    window.addEventListener("zampos:debtors-changed", onChange);
+    window.addEventListener("zampos:sync-complete", onChange);
     return () => {
-      void supabase.removeChannel(channel);
-      window.removeEventListener("zampos:sync-complete", onSync);
+      window.removeEventListener("zampos:sales-changed", onChange);
+      window.removeEventListener("zampos:expenses-changed", onChange);
+      window.removeEventListener("zampos:debtors-changed", onChange);
+      window.removeEventListener("zampos:sync-complete", onChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [business?.id, range.from, range.to]);
