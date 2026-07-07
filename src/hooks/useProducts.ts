@@ -76,33 +76,42 @@ const mapCachedProduct = (p: CachedProduct): Product => ({
 // option without exposing the bucket.
 const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 365; // ~1 year
 
+// Batch signed URL creation. Supabase caps a single call at a few hundred
+// paths and the JSON payload for 20k+ items would be huge; chunking keeps
+// each request small and lets us fail-soft on individual chunks.
+const SIGNED_URL_CHUNK = 100;
+
 const resolveImageUrls = async (products: Product[]): Promise<Product[]> => {
   const paths = Array.from(
     new Set(products.map((p) => p.imagePath).filter((x): x is string => !!x))
   );
   if (paths.length === 0) return products;
 
-  try {
-    const { data, error } = await supabase.storage
-      .from("product-images")
-      .createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
-
-    if (error || !data) return products;
-
-    const urlByPath = new Map<string, string>();
-    for (const item of data) {
-      if (item.signedUrl && (item.path ?? null)) {
-        urlByPath.set(item.path as string, item.signedUrl);
+  const urlByPath = new Map<string, string>();
+  for (let i = 0; i < paths.length; i += SIGNED_URL_CHUNK) {
+    const chunk = paths.slice(i, i + SIGNED_URL_CHUNK);
+    try {
+      const { data } = await supabase.storage
+        .from("product-images")
+        .createSignedUrls(chunk, SIGNED_URL_TTL_SECONDS);
+      if (data) {
+        for (const item of data) {
+          if (item.signedUrl && item.path) {
+            urlByPath.set(item.path, item.signedUrl);
+          }
+        }
       }
+    } catch {
+      // ignore chunk failure — remaining products just render without an image
     }
-    return products.map((p) =>
-      p.imagePath && urlByPath.has(p.imagePath)
-        ? { ...p, imageUrl: urlByPath.get(p.imagePath) ?? null }
-        : p
-    );
-  } catch {
-    return products;
   }
+
+  if (urlByPath.size === 0) return products;
+  return products.map((p) =>
+    p.imagePath && urlByPath.has(p.imagePath)
+      ? { ...p, imageUrl: urlByPath.get(p.imagePath) ?? null }
+      : p
+  );
 };
 
 export function useProducts(businessId: string | undefined) {
