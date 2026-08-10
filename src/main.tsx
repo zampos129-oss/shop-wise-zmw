@@ -27,19 +27,13 @@ if ((isInIframe || isPreviewHost) && "serviceWorker" in navigator) {
 }
 
 // ---------------------------------------------------------------------------
-// White-screen recovery for stale service worker deploys.
+// Stale-chunk self-healing WITHOUT reloading the app.
 //
-// After a new deploy (Vercel/Lovable), an old service worker can still serve
-// a cached index.html that references hashed JS chunks which no longer exist.
-// The dynamic import then fails ("Failed to fetch dynamically imported
-// module" / "ChunkLoadError") and React never mounts → white screen on
-// Chrome / Edge, especially after login when a lazy route loads.
-//
-// When we detect this specific error class we unregister every service
-// worker, purge caches, and force a one-time hard reload. Guarded by a
-// sessionStorage flag so we never loop.
+// If an old cached index.html points at JS chunks that no longer exist, we
+// quietly unregister service workers and purge caches. No page reload is
+// forced — the next natural navigation picks up the fresh build.
 // ---------------------------------------------------------------------------
-const RELOAD_FLAG = "zampos:sw-recovery-reload";
+const CLEANUP_FLAG = "zampos:sw-cleanup-done";
 
 const looksLikeChunkLoadError = (msg: string | undefined | null): boolean => {
   if (!msg) return false;
@@ -52,10 +46,10 @@ const looksLikeChunkLoadError = (msg: string | undefined | null): boolean => {
   );
 };
 
-const recoverFromStaleServiceWorker = async () => {
+const cleanupStaleServiceWorker = async () => {
   try {
-    if (sessionStorage.getItem(RELOAD_FLAG)) return; // already tried this session
-    sessionStorage.setItem(RELOAD_FLAG, "1");
+    if (sessionStorage.getItem(CLEANUP_FLAG)) return;
+    sessionStorage.setItem(CLEANUP_FLAG, "1");
 
     if ("serviceWorker" in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
@@ -66,16 +60,14 @@ const recoverFromStaleServiceWorker = async () => {
       await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
     }
   } catch {
-    // ignore — we still want to reload
-  } finally {
-    window.location.reload();
+    // ignore — best effort only
   }
 };
 
 if (typeof window !== "undefined") {
   window.addEventListener("error", (event) => {
     if (looksLikeChunkLoadError(event?.message)) {
-      void recoverFromStaleServiceWorker();
+      void cleanupStaleServiceWorker();
     }
   });
   window.addEventListener("unhandledrejection", (event) => {
@@ -87,7 +79,7 @@ if (typeof window !== "undefined") {
           ? reason.message
           : "";
     if (looksLikeChunkLoadError(msg)) {
-      void recoverFromStaleServiceWorker();
+      void cleanupStaleServiceWorker();
     }
   });
 }
