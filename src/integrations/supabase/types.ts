@@ -1266,6 +1266,7 @@ export type Database = {
         }
         Returns: string
       }
+      touch_business_sync: { Args: { _business_id: string }; Returns: string }
     }
     Enums: {
       affiliate_status: "pending" | "active" | "suspended"
