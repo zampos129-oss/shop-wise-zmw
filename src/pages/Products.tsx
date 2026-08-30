@@ -129,14 +129,31 @@ const Products = () => {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return topLevel;
+
+    const matchesStock = (p: Product) => {
+      if (stockFilter === "all") return true;
+      if (p.itemType === "service") return false;
+      const stock = p.stock ?? 0;
+      const min = p.minimumStock ?? 5;
+      if (stockFilter === "out") return stock <= 0;
+      return stock > 0 && stock <= min;
+    };
+
     return topLevel.filter((p) => {
+      const vars = variantsByParent[p.id] ?? [];
+
+      if (stockFilter !== "all") {
+        const stockHit = vars.length > 0 ? vars.some(matchesStock) : matchesStock(p);
+        if (!stockHit) return false;
+      }
+
+      if (!q) return true;
       if (p.name.toLowerCase().includes(q)) return true;
       if ((p.category ?? "").toLowerCase().includes(q)) return true;
-      const vars = variantsByParent[p.id] ?? [];
       return vars.some((v) => (v.variantLabel ?? "").toLowerCase().includes(q));
     });
-  }, [topLevel, variantsByParent, query]);
+  }, [topLevel, variantsByParent, query, stockFilter]);
+
 
   const groupedProducts = useMemo(() => {
     const groups: Record<string, Product[]> = {};
