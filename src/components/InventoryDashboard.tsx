@@ -17,7 +17,7 @@ type Props = {
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-ZM", { maximumFractionDigits: 2 }).format(n);
 
-const InventoryDashboard = ({ products, stockOnly = false }: Props) => {
+const InventoryDashboard = ({ products, stockOnly = false, onSelectFilter, activeFilter = "all" }: Props) => {
   const stats = useMemo(() => {
     // Sellable products only — variants count, parent-groupings are excluded.
     const parentIds = new Set(
@@ -54,11 +54,17 @@ const InventoryDashboard = ({ products, stockOnly = false }: Props) => {
     };
   }, [products]);
 
-  const tiles = stockOnly
+  const tiles: Array<{
+    icon: typeof Boxes;
+    label: string;
+    value: string;
+    tone: string;
+    filter?: StockFilter;
+  }> = stockOnly
     ? [
-        { icon: Boxes, label: "Items", value: String(stats.itemCount), tone: "text-foreground" },
-        { icon: AlertTriangle, label: "Low Stock", value: String(stats.lowStock), tone: "text-amber-600" },
-        { icon: PackageX, label: "Out of Stock", value: String(stats.outOfStock), tone: "text-destructive" },
+        { icon: Boxes, label: "Items", value: String(stats.itemCount), tone: "text-foreground", filter: "all" },
+        { icon: AlertTriangle, label: "Low Stock", value: String(stats.lowStock), tone: "text-amber-600", filter: "low" },
+        { icon: PackageX, label: "Out of Stock", value: String(stats.outOfStock), tone: "text-destructive", filter: "out" },
       ]
     : [
         { icon: Wallet, label: "Cost Value", value: `K ${fmt(stats.costValue)}`, tone: "text-foreground" },
@@ -69,9 +75,9 @@ const InventoryDashboard = ({ products, stockOnly = false }: Props) => {
           value: `K ${fmt(stats.profit)}`,
           tone: stats.profit >= 0 ? "text-emerald-600" : "text-destructive",
         },
-        { icon: Boxes, label: "Items", value: String(stats.itemCount), tone: "text-foreground" },
-        { icon: AlertTriangle, label: "Low Stock", value: String(stats.lowStock), tone: "text-amber-600" },
-        { icon: PackageX, label: "Out of Stock", value: String(stats.outOfStock), tone: "text-destructive" },
+        { icon: Boxes, label: "Items", value: String(stats.itemCount), tone: "text-foreground", filter: "all" },
+        { icon: AlertTriangle, label: "Low Stock", value: String(stats.lowStock), tone: "text-amber-600", filter: "low" },
+        { icon: PackageX, label: "Out of Stock", value: String(stats.outOfStock), tone: "text-destructive", filter: "out" },
       ];
 
   return (
@@ -80,9 +86,11 @@ const InventoryDashboard = ({ products, stockOnly = false }: Props) => {
         stockOnly ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
       }`}
     >
-      {tiles.map((t) => (
-        <Card key={t.label}>
-          <CardContent className="p-3">
+      {tiles.map((t) => {
+        const clickable = !!onSelectFilter && !!t.filter;
+        const isActive = clickable && activeFilter === t.filter && t.filter !== "all";
+        const body = (
+          <CardContent className="p-3 text-left w-full">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <t.icon className="h-3.5 w-3.5" />
               {t.label}
@@ -91,10 +99,40 @@ const InventoryDashboard = ({ products, stockOnly = false }: Props) => {
               {t.value}
             </p>
           </CardContent>
-        </Card>
-      ))}
+        );
+
+        if (!clickable) {
+          return <Card key={t.label}>{body}</Card>;
+        }
+
+        return (
+          <Card
+            key={t.label}
+            className={`transition-colors ${isActive ? "ring-2 ring-primary" : ""}`}
+          >
+            <button
+              type="button"
+              className="w-full h-full hover:bg-muted/50 rounded-lg transition-colors"
+              onClick={() =>
+                onSelectFilter!(isActive ? "all" : (t.filter as StockFilter))
+              }
+              aria-pressed={isActive}
+              title={
+                t.filter === "low"
+                  ? "Show items running low"
+                  : t.filter === "out"
+                  ? "Show items that are out of stock"
+                  : "Show all items"
+              }
+            >
+              {body}
+            </button>
+          </Card>
+        );
+      })}
     </div>
   );
 };
+
 
 export default InventoryDashboard;
