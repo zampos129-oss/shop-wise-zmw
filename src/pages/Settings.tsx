@@ -43,6 +43,16 @@ const Settings = () => {
   const [vatRate, setVatRate] = useState('16');
   const [customTaxName, setCustomTaxName] = useState('');
   const [customTaxRate, setCustomTaxRate] = useState('');
+
+  // Banking / payment details (optional, printed on documents)
+  const [bankName, setBankName] = useState('');
+  const [bankAccountName, setBankAccountName] = useState('');
+  const [bankAccountNumber, setBankAccountNumber] = useState('');
+  const [bankBranch, setBankBranch] = useState('');
+  const [bankSwift, setBankSwift] = useState('');
+  const [mobileMoneyName, setMobileMoneyName] = useState('');
+  const [mobileMoneyNumber, setMobileMoneyNumber] = useState('');
+  const [showBankOnDocuments, setShowBankOnDocuments] = useState(true);
   const [receiptSize, setReceiptSize] = useState<ReceiptSizeSetting>(() => {
     if (typeof window === 'undefined') return '80mm';
     const saved = window.localStorage.getItem(RECEIPT_SIZE_KEY);
@@ -70,6 +80,14 @@ const Settings = () => {
       setVatRate(String(business.vatRate ?? 16));
       setCustomTaxName(business.customTaxName || '');
       setCustomTaxRate(business.customTaxRate != null ? String(business.customTaxRate) : '');
+      setBankName(business.bankName || '');
+      setBankAccountName(business.bankAccountName || '');
+      setBankAccountNumber(business.bankAccountNumber || '');
+      setBankBranch(business.bankBranch || '');
+      setBankSwift(business.bankSwift || '');
+      setMobileMoneyName(business.mobileMoneyName || '');
+      setMobileMoneyNumber(business.mobileMoneyNumber || '');
+      setShowBankOnDocuments(business.showBankOnDocuments ?? true);
     }
   }, [business]);
 

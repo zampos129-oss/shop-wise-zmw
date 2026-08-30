@@ -33,6 +33,14 @@ interface Business {
   customTaxName?: string | null;
   customTaxRate?: number | null;
   planTier?: string | null;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankBranch?: string | null;
+  bankSwift?: string | null;
+  mobileMoneyName?: string | null;
+  mobileMoneyNumber?: string | null;
+  showBankOnDocuments?: boolean;
 }
 
 
@@ -55,7 +63,14 @@ const mapBusinessRow = (row: BusinessRow): Business => ({
   customTaxName: row.custom_tax_name,
   customTaxRate: row.custom_tax_rate != null ? Number(row.custom_tax_rate) : null,
   planTier: (row as any).plan_tier ?? null,
-
+  bankName: (row as any).bank_name ?? null,
+  bankAccountName: (row as any).bank_account_name ?? null,
+  bankAccountNumber: (row as any).bank_account_number ?? null,
+  bankBranch: (row as any).bank_branch ?? null,
+  bankSwift: (row as any).bank_swift ?? null,
+  mobileMoneyName: (row as any).mobile_money_name ?? null,
+  mobileMoneyNumber: (row as any).mobile_money_number ?? null,
+  showBankOnDocuments: (row as any).show_bank_on_documents ?? true,
 });
 
 export const useBusiness = (userId: string | undefined) => {
