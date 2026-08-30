@@ -3,10 +3,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Wallet, Coins, AlertTriangle, PackageX, Boxes } from "lucide-react";
 import type { Product } from "@/hooks/useProducts";
 
+export type StockFilter = "all" | "low" | "out";
+
 type Props = {
   products: Product[];
   /** When true, render only the stock-count tiles (for non-stock-tracked services). */
   stockOnly?: boolean;
+  /** When provided, the Items / Low Stock / Out of Stock tiles become clickable filters. */
+  onSelectFilter?: (filter: StockFilter) => void;
+  activeFilter?: StockFilter;
 };
 
 const fmt = (n: number) =>
