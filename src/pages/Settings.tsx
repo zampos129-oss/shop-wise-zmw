@@ -442,6 +442,63 @@ const Settings = () => {
             </CardContent>
           </Card>
 
+          {/* Banking / Payment details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Landmark className="h-5 w-5" /> Banking & Payment Details</CardTitle>
+              <CardDescription>
+                Optional. When filled in, these appear on quotations, invoices and delivery notes so customers know where to pay.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="bank-name">Bank name</Label>
+                  <Input id="bank-name" placeholder="e.g. Zanaco" value={bankName} onChange={(e) => setBankName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-branch">Branch</Label>
+                  <Input id="bank-branch" placeholder="e.g. Cairo Road" value={bankBranch} onChange={(e) => setBankBranch(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-account-name">Account name</Label>
+                  <Input id="bank-account-name" placeholder="Account holder name" value={bankAccountName} onChange={(e) => setBankAccountName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-account-number">Account number</Label>
+                  <Input id="bank-account-number" placeholder="0000000000" value={bankAccountNumber} onChange={(e) => setBankAccountNumber(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-swift">SWIFT / branch code</Label>
+                  <Input id="bank-swift" placeholder="Optional" value={bankSwift} onChange={(e) => setBankSwift(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="momo-name">Mobile money name</Label>
+                  <Input id="momo-name" placeholder="e.g. Airtel Money / MTN MoMo" value={mobileMoneyName} onChange={(e) => setMobileMoneyName(e.target.value)} />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="momo-number">Mobile money number</Label>
+                  <Input id="momo-number" placeholder="+260 …" value={mobileMoneyNumber} onChange={(e) => setMobileMoneyNumber(e.target.value)} />
+                </div>
+              </div>
+
+              <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                  checked={showBankOnDocuments}
+                  onChange={(e) => setShowBankOnDocuments(e.target.checked)}
+                />
+                <span className="text-sm">
+                  Show these payment details on quotations, invoices and delivery notes
+                  <span className="block text-xs text-muted-foreground">Turn off to keep them saved but hidden from printed documents.</span>
+                </span>
+              </label>
+            </CardContent>
+          </Card>
+
+
+
           {/* Receipt Printing */}
           <Card>
             <CardHeader>
