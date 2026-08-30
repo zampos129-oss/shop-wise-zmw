@@ -34,7 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import ConnectionStatus from "@/components/ConnectionStatus";
 import SyncStatusBanner from "@/components/SyncStatusBanner";
 import LockScreen from "@/components/LockScreen";
-import InventoryDashboard from "@/components/InventoryDashboard";
+import InventoryDashboard, { type StockFilter } from "@/components/InventoryDashboard";
 import ProductImageUpload from "@/components/ProductImageUpload";
 import VariantsManager from "@/components/VariantsManager";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -104,6 +104,9 @@ const Products = () => {
 
   // New-category input inside the "Manage categories" dialog
   const [pendingNewCategory, setPendingNewCategory] = useState("");
+
+  // Stock filter driven by the inventory tiles (all / low / out of stock)
+  const [stockFilter, setStockFilter] = useState<StockFilter>("all");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
