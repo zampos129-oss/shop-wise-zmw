@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Mail, MapPin, Phone, Save, Loader2, Store, Briefcase, Upload, X, Image, Receipt, Hash } from 'lucide-react';
+import { ArrowLeft, Building2, Mail, MapPin, Phone, Save, Loader2, Store, Briefcase, Upload, X, Image, Receipt, Hash, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -188,6 +188,14 @@ const Settings = () => {
           vat_rate: taxMode === 'vat' ? vatRateNum : 16,
           custom_tax_name: taxMode === 'custom' ? (customTaxName.trim() || 'Tax') : null,
           custom_tax_rate: taxMode === 'custom' ? customRateNum : null,
+          bank_name: bankName.trim() || null,
+          bank_account_name: bankAccountName.trim() || null,
+          bank_account_number: bankAccountNumber.trim() || null,
+          bank_branch: bankBranch.trim() || null,
+          bank_swift: bankSwift.trim() || null,
+          mobile_money_name: mobileMoneyName.trim() || null,
+          mobile_money_number: mobileMoneyNumber.trim() || null,
+          show_bank_on_documents: showBankOnDocuments,
           updated_at: new Date().toISOString(),
         } as any)
         .eq('id', business.id);
