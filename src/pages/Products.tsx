@@ -714,7 +714,12 @@ const Products = () => {
 
         <main className="p-4 max-w-4xl mx-auto space-y-4">
           {/* Inventory dashboard */}
-          <InventoryDashboard products={products} stockOnly={isService} />
+          <InventoryDashboard
+            products={products}
+            stockOnly={isService}
+            onSelectFilter={setStockFilter}
+            activeFilter={stockFilter}
+          />
 
           {!isCashier && business?.id && (
             <PendingStockRequests
