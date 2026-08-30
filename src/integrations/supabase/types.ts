@@ -252,6 +252,11 @@ export type Database = {
       businesses: {
         Row: {
           address: string | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          bank_swift: string | null
           created_at: string
           custom_tax_name: string | null
           custom_tax_rate: number | null
@@ -260,10 +265,13 @@ export type Database = {
           is_locked: boolean
           last_sync_at: string
           logo_url: string | null
+          mobile_money_name: string | null
+          mobile_money_number: string | null
           name: string
           payment_code: string
           phone: string | null
           plan_tier: string | null
+          show_bank_on_documents: boolean
           subscription_expires_at: string | null
           subscription_status: Database["public"]["Enums"]["subscription_status"]
           tax_mode: string
@@ -276,6 +284,11 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
           created_at?: string
           custom_tax_name?: string | null
           custom_tax_rate?: number | null
@@ -284,10 +297,13 @@ export type Database = {
           is_locked?: boolean
           last_sync_at?: string
           logo_url?: string | null
+          mobile_money_name?: string | null
+          mobile_money_number?: string | null
           name: string
           payment_code: string
           phone?: string | null
           plan_tier?: string | null
+          show_bank_on_documents?: boolean
           subscription_expires_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           tax_mode?: string
@@ -300,6 +316,11 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
           created_at?: string
           custom_tax_name?: string | null
           custom_tax_rate?: number | null
@@ -308,10 +329,13 @@ export type Database = {
           is_locked?: boolean
           last_sync_at?: string
           logo_url?: string | null
+          mobile_money_name?: string | null
+          mobile_money_number?: string | null
           name?: string
           payment_code?: string
           phone?: string | null
           plan_tier?: string | null
+          show_bank_on_documents?: boolean
           subscription_expires_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           tax_mode?: string
