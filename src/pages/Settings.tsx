@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Mail, MapPin, Phone, Save, Loader2, Store, Briefcase, Upload, X, Image, Receipt, Hash } from 'lucide-react';
+import { ArrowLeft, Building2, Mail, MapPin, Phone, Save, Loader2, Store, Briefcase, Upload, X, Image, Receipt, Hash, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +43,16 @@ const Settings = () => {
   const [vatRate, setVatRate] = useState('16');
   const [customTaxName, setCustomTaxName] = useState('');
   const [customTaxRate, setCustomTaxRate] = useState('');
+
+  // Banking / payment details (optional, printed on documents)
+  const [bankName, setBankName] = useState('');
+  const [bankAccountName, setBankAccountName] = useState('');
+  const [bankAccountNumber, setBankAccountNumber] = useState('');
+  const [bankBranch, setBankBranch] = useState('');
+  const [bankSwift, setBankSwift] = useState('');
+  const [mobileMoneyName, setMobileMoneyName] = useState('');
+  const [mobileMoneyNumber, setMobileMoneyNumber] = useState('');
+  const [showBankOnDocuments, setShowBankOnDocuments] = useState(true);
   const [receiptSize, setReceiptSize] = useState<ReceiptSizeSetting>(() => {
     if (typeof window === 'undefined') return '80mm';
     const saved = window.localStorage.getItem(RECEIPT_SIZE_KEY);
@@ -70,6 +80,14 @@ const Settings = () => {
       setVatRate(String(business.vatRate ?? 16));
       setCustomTaxName(business.customTaxName || '');
       setCustomTaxRate(business.customTaxRate != null ? String(business.customTaxRate) : '');
+      setBankName(business.bankName || '');
+      setBankAccountName(business.bankAccountName || '');
+      setBankAccountNumber(business.bankAccountNumber || '');
+      setBankBranch(business.bankBranch || '');
+      setBankSwift(business.bankSwift || '');
+      setMobileMoneyName(business.mobileMoneyName || '');
+      setMobileMoneyNumber(business.mobileMoneyNumber || '');
+      setShowBankOnDocuments(business.showBankOnDocuments ?? true);
     }
   }, [business]);
 
@@ -170,6 +188,14 @@ const Settings = () => {
           vat_rate: taxMode === 'vat' ? vatRateNum : 16,
           custom_tax_name: taxMode === 'custom' ? (customTaxName.trim() || 'Tax') : null,
           custom_tax_rate: taxMode === 'custom' ? customRateNum : null,
+          bank_name: bankName.trim() || null,
+          bank_account_name: bankAccountName.trim() || null,
+          bank_account_number: bankAccountNumber.trim() || null,
+          bank_branch: bankBranch.trim() || null,
+          bank_swift: bankSwift.trim() || null,
+          mobile_money_name: mobileMoneyName.trim() || null,
+          mobile_money_number: mobileMoneyNumber.trim() || null,
+          show_bank_on_documents: showBankOnDocuments,
           updated_at: new Date().toISOString(),
         } as any)
         .eq('id', business.id);
@@ -415,6 +441,63 @@ const Settings = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Banking / Payment details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Landmark className="h-5 w-5" /> Banking & Payment Details</CardTitle>
+              <CardDescription>
+                Optional. When filled in, these appear on quotations, invoices and delivery notes so customers know where to pay.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="bank-name">Bank name</Label>
+                  <Input id="bank-name" placeholder="e.g. Zanaco" value={bankName} onChange={(e) => setBankName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-branch">Branch</Label>
+                  <Input id="bank-branch" placeholder="e.g. Cairo Road" value={bankBranch} onChange={(e) => setBankBranch(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-account-name">Account name</Label>
+                  <Input id="bank-account-name" placeholder="Account holder name" value={bankAccountName} onChange={(e) => setBankAccountName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-account-number">Account number</Label>
+                  <Input id="bank-account-number" placeholder="0000000000" value={bankAccountNumber} onChange={(e) => setBankAccountNumber(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bank-swift">SWIFT / branch code</Label>
+                  <Input id="bank-swift" placeholder="Optional" value={bankSwift} onChange={(e) => setBankSwift(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="momo-name">Mobile money name</Label>
+                  <Input id="momo-name" placeholder="e.g. Airtel Money / MTN MoMo" value={mobileMoneyName} onChange={(e) => setMobileMoneyName(e.target.value)} />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="momo-number">Mobile money number</Label>
+                  <Input id="momo-number" placeholder="+260 …" value={mobileMoneyNumber} onChange={(e) => setMobileMoneyNumber(e.target.value)} />
+                </div>
+              </div>
+
+              <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                  checked={showBankOnDocuments}
+                  onChange={(e) => setShowBankOnDocuments(e.target.checked)}
+                />
+                <span className="text-sm">
+                  Show these payment details on quotations, invoices and delivery notes
+                  <span className="block text-xs text-muted-foreground">Turn off to keep them saved but hidden from printed documents.</span>
+                </span>
+              </label>
+            </CardContent>
+          </Card>
+
+
 
           {/* Receipt Printing */}
           <Card>

@@ -5,10 +5,26 @@ import { Separator } from "@/components/ui/separator";
 import { Quotation, QuotationItem } from "@/hooks/useQuotations";
 import jsPDF from "jspdf";
 
+export interface DocumentBusinessDetails {
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  logoUrl?: string | null;
+  tpin?: string | null;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankBranch?: string | null;
+  bankSwift?: string | null;
+  mobileMoneyName?: string | null;
+  mobileMoneyNumber?: string | null;
+  showBankOnDocuments?: boolean;
+}
+
 interface QuotationViewProps {
   quotation: Quotation;
   businessName: string;
-  businessDetails: { phone?: string | null; email?: string | null; address?: string | null; logoUrl?: string | null; tpin?: string | null };
+  businessDetails: DocumentBusinessDetails;
   onBack: () => void;
   onEdit: () => void;
   onConvert: () => void;

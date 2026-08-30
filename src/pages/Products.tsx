@@ -34,7 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import ConnectionStatus from "@/components/ConnectionStatus";
 import SyncStatusBanner from "@/components/SyncStatusBanner";
 import LockScreen from "@/components/LockScreen";
-import InventoryDashboard from "@/components/InventoryDashboard";
+import InventoryDashboard, { type StockFilter } from "@/components/InventoryDashboard";
 import ProductImageUpload from "@/components/ProductImageUpload";
 import VariantsManager from "@/components/VariantsManager";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -105,6 +105,9 @@ const Products = () => {
   // New-category input inside the "Manage categories" dialog
   const [pendingNewCategory, setPendingNewCategory] = useState("");
 
+  // Stock filter driven by the inventory tiles (all / low / out of stock)
+  const [stockFilter, setStockFilter] = useState<StockFilter>("all");
+
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [authLoading, user, navigate]);
@@ -126,14 +129,31 @@ const Products = () => {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return topLevel;
+
+    const matchesStock = (p: Product) => {
+      if (stockFilter === "all") return true;
+      if (p.itemType === "service") return false;
+      const stock = p.stock ?? 0;
+      const min = p.minimumStock ?? 5;
+      if (stockFilter === "out") return stock <= 0;
+      return stock > 0 && stock <= min;
+    };
+
     return topLevel.filter((p) => {
+      const vars = variantsByParent[p.id] ?? [];
+
+      if (stockFilter !== "all") {
+        const stockHit = vars.length > 0 ? vars.some(matchesStock) : matchesStock(p);
+        if (!stockHit) return false;
+      }
+
+      if (!q) return true;
       if (p.name.toLowerCase().includes(q)) return true;
       if ((p.category ?? "").toLowerCase().includes(q)) return true;
-      const vars = variantsByParent[p.id] ?? [];
       return vars.some((v) => (v.variantLabel ?? "").toLowerCase().includes(q));
     });
-  }, [topLevel, variantsByParent, query]);
+  }, [topLevel, variantsByParent, query, stockFilter]);
+
 
   const groupedProducts = useMemo(() => {
     const groups: Record<string, Product[]> = {};
@@ -694,7 +714,12 @@ const Products = () => {
 
         <main className="p-4 max-w-4xl mx-auto space-y-4">
           {/* Inventory dashboard */}
-          <InventoryDashboard products={products} stockOnly={isService} />
+          <InventoryDashboard
+            products={products}
+            stockOnly={isService}
+            onSelectFilter={setStockFilter}
+            activeFilter={stockFilter}
+          />
 
           {!isCashier && business?.id && (
             <PendingStockRequests
@@ -717,11 +742,30 @@ const Products = () => {
                 placeholder="Search by name, category or variant"
               />
 
+              {stockFilter !== "all" && (
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
+                  <p className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                    <AlertTriangle className={`h-4 w-4 ${stockFilter === "out" ? "text-destructive" : "text-amber-600"}`} />
+                    Showing {stockFilter === "out" ? "out of stock" : "low stock"} items
+                    <span className="text-muted-foreground">({filtered.length})</span>
+                  </p>
+                  <Button variant="ghost" size="sm" onClick={() => setStockFilter("all")}>
+                    Clear
+                  </Button>
+                </div>
+              )}
+
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
               <div className="space-y-4">
                 {Object.keys(groupedProducts).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{labels.noItemsMessage}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {stockFilter === "out"
+                      ? "Nothing is out of stock right now."
+                      : stockFilter === "low"
+                      ? "No items are running low right now."
+                      : labels.noItemsMessage}
+                  </p>
                 ) : (
                   Object.entries(groupedProducts).map(([cat, prods]) => (
                     <div key={cat} className="space-y-2">
