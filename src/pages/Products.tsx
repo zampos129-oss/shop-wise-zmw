@@ -742,11 +742,30 @@ const Products = () => {
                 placeholder="Search by name, category or variant"
               />
 
+              {stockFilter !== "all" && (
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
+                  <p className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                    <AlertTriangle className={`h-4 w-4 ${stockFilter === "out" ? "text-destructive" : "text-amber-600"}`} />
+                    Showing {stockFilter === "out" ? "out of stock" : "low stock"} items
+                    <span className="text-muted-foreground">({filtered.length})</span>
+                  </p>
+                  <Button variant="ghost" size="sm" onClick={() => setStockFilter("all")}>
+                    Clear
+                  </Button>
+                </div>
+              )}
+
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
               <div className="space-y-4">
                 {Object.keys(groupedProducts).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{labels.noItemsMessage}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {stockFilter === "out"
+                      ? "Nothing is out of stock right now."
+                      : stockFilter === "low"
+                      ? "No items are running low right now."
+                      : labels.noItemsMessage}
+                  </p>
                 ) : (
                   Object.entries(groupedProducts).map(([cat, prods]) => (
                     <div key={cat} className="space-y-2">
