@@ -158,6 +158,12 @@ export function useDeliveryNotes(businessId: string | undefined) {
     if (d.customerPhone !== undefined) updateData.customer_phone = d.customerPhone;
     if (d.customerEmail !== undefined) updateData.customer_email = d.customerEmail;
     if (d.customerTpin !== undefined) updateData.customer_tpin = d.customerTpin;
+    if (d.deliveryAddress !== undefined) updateData.delivery_address = d.deliveryAddress;
+    if (d.referenceNumber !== undefined) updateData.reference_number = d.referenceNumber;
+    if (d.driverName !== undefined) updateData.driver_name = d.driverName;
+    if (d.vehicleRegistration !== undefined) updateData.vehicle_registration = d.vehicleRegistration;
+    if (d.receivedBy !== undefined) updateData.received_by = d.receivedBy;
+    if (d.showPrices !== undefined) updateData.show_prices = d.showPrices;
     if (d.notes !== undefined) updateData.notes = d.notes;
     if (d.deliveryDate !== undefined) updateData.delivery_date = d.deliveryDate;
     if (d.status !== undefined) updateData.status = d.status;
