@@ -238,13 +238,17 @@ const ReceiptModal = ({
   const handlePrint = () => {
     const html = getReceiptHTML();
     const iframe = document.createElement("iframe");
+    // Position off-screen (not 0×0) so the browser lays out the receipt and
+    // applies the @page size correctly — a fully hidden frame can cause some
+    // printers to fall back to the wrong paper size.
     iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
+    iframe.style.top = "-10000px";
+    iframe.style.left = "-10000px";
+    iframe.style.width = styles.bodyWidth === "auto" ? "620px" : styles.bodyWidth;
     iframe.style.border = "0";
+    iframe.style.opacity = "0";
     iframe.setAttribute("aria-hidden", "true");
+    iframe.setAttribute("tabindex", "-1");
     document.body.appendChild(iframe);
 
     let cleaned = false;

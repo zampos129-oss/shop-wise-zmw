@@ -131,6 +131,37 @@ const Settings = () => {
     }
   };
 
+  const handleSavePaymentDetails = async () => {
+    if (!business?.id) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('businesses')
+        .update({
+          bank_name: bankName.trim() || null,
+          bank_account_name: bankAccountName.trim() || null,
+          bank_account_number: bankAccountNumber.trim() || null,
+          bank_branch: bankBranch.trim() || null,
+          bank_swift: bankSwift.trim() || null,
+          mobile_money_name: mobileMoneyName.trim() || null,
+          mobile_money_number: mobileMoneyNumber.trim() || null,
+          show_bank_on_documents: showBankOnDocuments,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('id', business.id);
+
+      if (error) throw error;
+
+      toast({ title: 'Payment details saved', description: 'Your banking & mobile money details have been updated.' });
+      await refetch();
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Failed', description: e?.message ?? 'Could not save payment details' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleRemoveLogo = async () => {
     if (!business?.id) return;
     setUploading(true);
@@ -494,6 +525,19 @@ const Settings = () => {
                   <span className="block text-xs text-muted-foreground">Turn off to keep them saved but hidden from printed documents.</span>
                 </span>
               </label>
+
+              <Button
+                variant="pos"
+                className="w-full sm:w-auto"
+                onClick={handleSavePaymentDetails}
+                disabled={saving}
+              >
+                {saving ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
+                ) : (
+                  <><Save className="mr-2 h-4 w-4" /> Save Payment Details</>
+                )}
+              </Button>
             </CardContent>
           </Card>
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, Search, ShoppingCart, Trash2, Percent, DollarSign, Users, Briefcase, FileText } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Search, ShoppingCart, Trash2, Percent, DollarSign, Users, Briefcase, FileText, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import SyncStatusBanner from "@/components/SyncStatusBanner";
 import ReceiptModal from "@/components/ReceiptModal";
 import LockScreen from "@/components/LockScreen";
 import QuotationTab from "@/components/QuotationTab";
+import DeliveryNoteTab from "@/components/DeliveryNoteTab";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useBusiness } from "@/hooks/useBusiness";
 import { useProducts } from "@/hooks/useProducts";
@@ -493,6 +494,9 @@ const Pos = () => {
               <TabsTrigger value="quotations" className="flex items-center gap-1.5">
                 <FileText className="h-4 w-4" /> Quotations
               </TabsTrigger>
+              <TabsTrigger value="delivery-notes" className="flex items-center gap-1.5">
+                <Truck className="h-4 w-4" /> Delivery Notes
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="sale">
@@ -804,10 +808,41 @@ const Pos = () => {
                   vatRate: business.vatRate,
                   customTaxName: business.customTaxName,
                   customTaxRate: business.customTaxRate,
+                  bankName: business.bankName,
+                  bankAccountName: business.bankAccountName,
+                  bankAccountNumber: business.bankAccountNumber,
+                  bankBranch: business.bankBranch,
+                  bankSwift: business.bankSwift,
+                  mobileMoneyName: business.mobileMoneyName,
+                  mobileMoneyNumber: business.mobileMoneyNumber,
+                  showBankOnDocuments: business.showBankOnDocuments,
                 }}
                 products={activeProducts}
                 isService={isService}
                 onConvertToSale={handleConvertQuotation}
+              />
+            </TabsContent>
+
+            <TabsContent value="delivery-notes">
+              <DeliveryNoteTab
+                businessId={business.id}
+                businessName={business.name}
+                businessDetails={{
+                  phone: business.phone,
+                  email: business.email,
+                  address: business.address,
+                  logoUrl: business.logoUrl,
+                  tpin: business.tpin,
+                  bankName: business.bankName,
+                  bankAccountName: business.bankAccountName,
+                  bankAccountNumber: business.bankAccountNumber,
+                  bankBranch: business.bankBranch,
+                  bankSwift: business.bankSwift,
+                  mobileMoneyName: business.mobileMoneyName,
+                  mobileMoneyNumber: business.mobileMoneyNumber,
+                  showBankOnDocuments: business.showBankOnDocuments,
+                }}
+                products={activeProducts}
               />
             </TabsContent>
           </Tabs>

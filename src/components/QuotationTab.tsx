@@ -19,6 +19,14 @@ interface BusinessDetailsExt {
   vatRate?: number;
   customTaxName?: string | null;
   customTaxRate?: number | null;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankBranch?: string | null;
+  bankSwift?: string | null;
+  mobileMoneyName?: string | null;
+  mobileMoneyNumber?: string | null;
+  showBankOnDocuments?: boolean;
 }
 
 interface QuotationTabProps {
