@@ -19,6 +19,12 @@ export interface DeliveryNote {
   customerPhone: string | null;
   customerEmail: string | null;
   customerTpin: string | null;
+  deliveryAddress: string | null;
+  referenceNumber: string | null;
+  driverName: string | null;
+  vehicleRegistration: string | null;
+  receivedBy: string | null;
+  showPrices: boolean;
   notes: string | null;
   deliveryDate: string | null;
   status: 'draft' | 'sent' | 'delivered' | 'cancelled';
@@ -36,6 +42,12 @@ const mapRow = (row: any): DeliveryNote => ({
   customerPhone: row.customer_phone,
   customerEmail: row.customer_email,
   customerTpin: row.customer_tpin ?? null,
+  deliveryAddress: row.delivery_address ?? null,
+  referenceNumber: row.reference_number ?? null,
+  driverName: row.driver_name ?? null,
+  vehicleRegistration: row.vehicle_registration ?? null,
+  receivedBy: row.received_by ?? null,
+  showPrices: row.show_prices ?? true,
   notes: row.notes,
   deliveryDate: row.delivery_date,
   status: row.status,
