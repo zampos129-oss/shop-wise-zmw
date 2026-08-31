@@ -26,6 +26,12 @@ const DeliveryNoteForm = ({ products, existingDeliveryNote, onSave, onCancel }: 
   const [customerPhone, setCustomerPhone] = useState(existingDeliveryNote?.customerPhone || "");
   const [customerEmail, setCustomerEmail] = useState(existingDeliveryNote?.customerEmail || "");
   const [customerTpin, setCustomerTpin] = useState(existingDeliveryNote?.customerTpin || "");
+  const [deliveryAddress, setDeliveryAddress] = useState(existingDeliveryNote?.deliveryAddress || "");
+  const [referenceNumber, setReferenceNumber] = useState(existingDeliveryNote?.referenceNumber || "");
+  const [driverName, setDriverName] = useState(existingDeliveryNote?.driverName || "");
+  const [vehicleRegistration, setVehicleRegistration] = useState(existingDeliveryNote?.vehicleRegistration || "");
+  const [receivedBy, setReceivedBy] = useState(existingDeliveryNote?.receivedBy || "");
+  const [showPrices, setShowPrices] = useState(existingDeliveryNote?.showPrices ?? true);
   const [notes, setNotes] = useState(existingDeliveryNote?.notes || "");
   const [deliveryDate, setDeliveryDate] = useState(existingDeliveryNote?.deliveryDate || "");
   const [status, setStatus] = useState<DeliveryNote['status']>(existingDeliveryNote?.status || 'draft');
@@ -80,6 +86,12 @@ const DeliveryNoteForm = ({ products, existingDeliveryNote, onSave, onCancel }: 
         customerPhone: customerPhone || null,
         customerEmail: customerEmail || null,
         customerTpin: customerTpin || null,
+        deliveryAddress: deliveryAddress || null,
+        referenceNumber: referenceNumber || null,
+        driverName: driverName || null,
+        vehicleRegistration: vehicleRegistration || null,
+        receivedBy: receivedBy || null,
+        showPrices,
         notes: notes || null,
         deliveryDate: deliveryDate || null,
         status,
@@ -145,6 +157,21 @@ const DeliveryNoteForm = ({ products, existingDeliveryNote, onSave, onCancel }: 
                 value={customerTpin}
                 onChange={e => setCustomerTpin(e.target.value.replace(/\D/g, ''))}
               />
+              <div>
+                <Label className="text-xs">Delivery Address</Label>
+                <Textarea
+                  placeholder="Street, area, town / site where goods are delivered"
+                  value={deliveryAddress}
+                  onChange={e => setDeliveryAddress(e.target.value)}
+                  className="h-16"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-base">Delivery Details</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs">Delivery Date</Label>
@@ -163,6 +190,30 @@ const DeliveryNoteForm = ({ products, existingDeliveryNote, onSave, onCancel }: 
                   </Select>
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Order / Reference No.</Label>
+                  <Input placeholder="e.g. PO-1234" value={referenceNumber} onChange={e => setReferenceNumber(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Vehicle Reg.</Label>
+                  <Input placeholder="e.g. BAH 1234" value={vehicleRegistration} onChange={e => setVehicleRegistration(e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Driver / Delivered By</Label>
+                  <Input placeholder="Driver name" value={driverName} onChange={e => setDriverName(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Received By</Label>
+                  <Input placeholder="Leave blank to sign on paper" value={receivedBy} onChange={e => setReceivedBy(e.target.value)} />
+                </div>
+              </div>
+              <label className="flex items-center gap-2 pt-1 cursor-pointer">
+                <Checkbox checked={showPrices} onCheckedChange={(v) => setShowPrices(v === true)} />
+                <span className="text-xs text-muted-foreground">Show prices and totals on the delivery note</span>
+              </label>
               <Textarea placeholder="Notes (optional)" value={notes} onChange={e => setNotes(e.target.value)} className="h-16" />
             </CardContent>
           </Card>

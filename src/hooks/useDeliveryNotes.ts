@@ -19,6 +19,12 @@ export interface DeliveryNote {
   customerPhone: string | null;
   customerEmail: string | null;
   customerTpin: string | null;
+  deliveryAddress: string | null;
+  referenceNumber: string | null;
+  driverName: string | null;
+  vehicleRegistration: string | null;
+  receivedBy: string | null;
+  showPrices: boolean;
   notes: string | null;
   deliveryDate: string | null;
   status: 'draft' | 'sent' | 'delivered' | 'cancelled';
@@ -36,6 +42,12 @@ const mapRow = (row: any): DeliveryNote => ({
   customerPhone: row.customer_phone,
   customerEmail: row.customer_email,
   customerTpin: row.customer_tpin ?? null,
+  deliveryAddress: row.delivery_address ?? null,
+  referenceNumber: row.reference_number ?? null,
+  driverName: row.driver_name ?? null,
+  vehicleRegistration: row.vehicle_registration ?? null,
+  receivedBy: row.received_by ?? null,
+  showPrices: row.show_prices ?? true,
   notes: row.notes,
   deliveryDate: row.delivery_date,
   status: row.status,
@@ -112,6 +124,12 @@ export function useDeliveryNotes(businessId: string | undefined) {
         customer_phone: d.customerPhone,
         customer_email: d.customerEmail,
         customer_tpin: d.customerTpin,
+        delivery_address: d.deliveryAddress,
+        reference_number: d.referenceNumber,
+        driver_name: d.driverName,
+        vehicle_registration: d.vehicleRegistration,
+        received_by: d.receivedBy,
+        show_prices: d.showPrices ?? true,
         notes: d.notes,
         delivery_date: d.deliveryDate,
         status: d.status || 'draft',
@@ -140,6 +158,12 @@ export function useDeliveryNotes(businessId: string | undefined) {
     if (d.customerPhone !== undefined) updateData.customer_phone = d.customerPhone;
     if (d.customerEmail !== undefined) updateData.customer_email = d.customerEmail;
     if (d.customerTpin !== undefined) updateData.customer_tpin = d.customerTpin;
+    if (d.deliveryAddress !== undefined) updateData.delivery_address = d.deliveryAddress;
+    if (d.referenceNumber !== undefined) updateData.reference_number = d.referenceNumber;
+    if (d.driverName !== undefined) updateData.driver_name = d.driverName;
+    if (d.vehicleRegistration !== undefined) updateData.vehicle_registration = d.vehicleRegistration;
+    if (d.receivedBy !== undefined) updateData.received_by = d.receivedBy;
+    if (d.showPrices !== undefined) updateData.show_prices = d.showPrices;
     if (d.notes !== undefined) updateData.notes = d.notes;
     if (d.deliveryDate !== undefined) updateData.delivery_date = d.deliveryDate;
     if (d.status !== undefined) updateData.status = d.status;
