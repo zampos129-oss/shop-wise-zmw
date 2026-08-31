@@ -899,117 +899,6 @@ export type Database = {
           },
         ]
       }
-      delivery_note_items: {
-        Row: {
-          created_at: string
-          delivery_note_id: string
-          id: string
-          line_total: number
-          product_id: string | null
-          product_name: string
-          quantity: number
-          unit_price: number
-        }
-        Insert: {
-          created_at?: string
-          delivery_note_id: string
-          id?: string
-          line_total?: number
-          product_id?: string | null
-          product_name: string
-          quantity?: number
-          unit_price?: number
-        }
-        Update: {
-          created_at?: string
-          delivery_note_id?: string
-          id?: string
-          line_total?: number
-          product_id?: string | null
-          product_name?: string
-          quantity?: number
-          unit_price?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "delivery_note_items_delivery_note_id_fkey"
-            columns: ["delivery_note_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "delivery_note_items_delivery_note_id_fkey"
-            columns: ["delivery_note_id"]
-            isOneToOne: false
-            referencedRelation: "delivery_notes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "delivery_note_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      delivery_notes: {
-        Row: {
-          business_id: string
-          created_at: string
-          customer_email: string | null
-          customer_name: string | null
-          customer_phone: string | null
-          customer_tpin: string | null
-          deleted_at: string | null
-          delivery_date: string | null
-          delivery_note_number: string
-          id: string
-          notes: string | null
-          status: Database["public"]["Enums"]["delivery_note_status"]
-          updated_at: string
-        }
-        Insert: {
-          business_id: string
-          created_at?: string
-          customer_email?: string | null
-          customer_name?: string | null
-          customer_phone?: string | null
-          customer_tpin?: string | null
-          deleted_at?: string | null
-          delivery_date?: string | null
-          delivery_note_number: string
-          id?: string
-          notes?: string | null
-          status?: Database["public"]["Enums"]["delivery_note_status"]
-          updated_at?: string
-        }
-        Update: {
-          business_id?: string
-          created_at?: string
-          customer_email?: string | null
-          customer_name?: string | null
-          customer_phone?: string | null
-          customer_tpin?: string | null
-          deleted_at?: string | null
-          delivery_date?: string | null
-          delivery_note_number?: string
-          id?: string
-          notes?: string | null
-          status?: Database["public"]["Enums"]["delivery_note_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "delivery_notes_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       sale_payments: {
         Row: {
           amount: number
@@ -1337,10 +1226,6 @@ export type Database = {
         Args: { p_payment_method?: string; p_quotation_id: string }
         Returns: string
       }
-      create_delivery_note_with_items: {
-        Args: { p_business_id: string; p_header: Json; p_items: Json }
-        Returns: string
-      }
       create_quotation_with_items: {
         Args: { p_business_id: string; p_header: Json; p_items: Json }
         Returns: string
@@ -1350,7 +1235,6 @@ export type Database = {
         Returns: boolean
       }
       generate_affiliate_code: { Args: never; Returns: string }
-      generate_delivery_note_number: { Args: { biz_id: string }; Returns: string }
       generate_payment_code: { Args: never; Returns: string }
       generate_quotation_number: { Args: { biz_id: string }; Returns: string }
       get_affiliate_by_code: { Args: { code: string }; Returns: string }
@@ -1412,7 +1296,6 @@ export type Database = {
       affiliate_status: "pending" | "active" | "suspended"
       app_role: "business_owner" | "super_admin" | "cashier"
       commission_status: "pending" | "paid"
-      delivery_note_status: "draft" | "sent" | "delivered" | "cancelled"
       payment_status: "pending" | "approved" | "rejected"
       quotation_status:
         | "draft"
