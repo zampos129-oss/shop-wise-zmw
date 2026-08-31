@@ -507,12 +507,18 @@ export type Database = {
           customer_phone: string | null
           customer_tpin: string | null
           deleted_at: string | null
+          delivery_address: string | null
           delivery_date: string | null
           delivery_note_number: string
+          driver_name: string | null
           id: string
           notes: string | null
+          received_by: string | null
+          reference_number: string | null
+          show_prices: boolean
           status: Database["public"]["Enums"]["delivery_note_status"]
           updated_at: string
+          vehicle_registration: string | null
         }
         Insert: {
           business_id: string
@@ -522,12 +528,18 @@ export type Database = {
           customer_phone?: string | null
           customer_tpin?: string | null
           deleted_at?: string | null
+          delivery_address?: string | null
           delivery_date?: string | null
           delivery_note_number: string
+          driver_name?: string | null
           id?: string
           notes?: string | null
+          received_by?: string | null
+          reference_number?: string | null
+          show_prices?: boolean
           status?: Database["public"]["Enums"]["delivery_note_status"]
           updated_at?: string
+          vehicle_registration?: string | null
         }
         Update: {
           business_id?: string
@@ -537,12 +549,18 @@ export type Database = {
           customer_phone?: string | null
           customer_tpin?: string | null
           deleted_at?: string | null
+          delivery_address?: string | null
           delivery_date?: string | null
           delivery_note_number?: string
+          driver_name?: string | null
           id?: string
           notes?: string | null
+          received_by?: string | null
+          reference_number?: string | null
+          show_prices?: boolean
           status?: Database["public"]["Enums"]["delivery_note_status"]
           updated_at?: string
+          vehicle_registration?: string | null
         }
         Relationships: [
           {
