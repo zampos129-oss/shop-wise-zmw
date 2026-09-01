@@ -11,9 +11,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/hooks/useProducts";
 import { DeliveryNote, DeliveryNoteItem } from "@/hooks/useDeliveryNotes";
 
+export interface DeliveryNotePrefill {
+  customerName?: string | null;
+  customerPhone?: string | null;
+  customerEmail?: string | null;
+  customerTpin?: string | null;
+  referenceNumber?: string | null;
+  notes?: string | null;
+  items?: DeliveryNoteItem[];
+}
+
 interface DeliveryNoteFormProps {
   products: Product[];
   existingDeliveryNote?: DeliveryNote | null;
+  prefill?: DeliveryNotePrefill | null;
   onSave: (
     d: Omit<DeliveryNote, 'id' | 'deliveryNoteNumber' | 'businessId' | 'createdAt' | 'updatedAt' | 'deletedAt'>,
     items: DeliveryNoteItem[]
@@ -21,22 +32,22 @@ interface DeliveryNoteFormProps {
   onCancel: () => void;
 }
 
-const DeliveryNoteForm = ({ products, existingDeliveryNote, onSave, onCancel }: DeliveryNoteFormProps) => {
+const DeliveryNoteForm = ({ products, existingDeliveryNote, prefill, onSave, onCancel }: DeliveryNoteFormProps) => {
   const { toast } = useToast();
-  const [customerName, setCustomerName] = useState(existingDeliveryNote?.customerName || "");
-  const [customerPhone, setCustomerPhone] = useState(existingDeliveryNote?.customerPhone || "");
-  const [customerEmail, setCustomerEmail] = useState(existingDeliveryNote?.customerEmail || "");
-  const [customerTpin, setCustomerTpin] = useState(existingDeliveryNote?.customerTpin || "");
+  const [customerName, setCustomerName] = useState(existingDeliveryNote?.customerName || prefill?.customerName || "");
+  const [customerPhone, setCustomerPhone] = useState(existingDeliveryNote?.customerPhone || prefill?.customerPhone || "");
+  const [customerEmail, setCustomerEmail] = useState(existingDeliveryNote?.customerEmail || prefill?.customerEmail || "");
+  const [customerTpin, setCustomerTpin] = useState(existingDeliveryNote?.customerTpin || prefill?.customerTpin || "");
   const [deliveryAddress, setDeliveryAddress] = useState(existingDeliveryNote?.deliveryAddress || "");
-  const [referenceNumber, setReferenceNumber] = useState(existingDeliveryNote?.referenceNumber || "");
+  const [referenceNumber, setReferenceNumber] = useState(existingDeliveryNote?.referenceNumber || prefill?.referenceNumber || "");
   const [driverName, setDriverName] = useState(existingDeliveryNote?.driverName || "");
   const [vehicleRegistration, setVehicleRegistration] = useState(existingDeliveryNote?.vehicleRegistration || "");
   const [receivedBy, setReceivedBy] = useState(existingDeliveryNote?.receivedBy || "");
   const [showPrices, setShowPrices] = useState(existingDeliveryNote?.showPrices ?? true);
-  const [notes, setNotes] = useState(existingDeliveryNote?.notes || "");
+  const [notes, setNotes] = useState(existingDeliveryNote?.notes || prefill?.notes || "");
   const [deliveryDate, setDeliveryDate] = useState(existingDeliveryNote?.deliveryDate || "");
   const [status, setStatus] = useState<DeliveryNote['status']>(existingDeliveryNote?.status || 'draft');
-  const [items, setItems] = useState<DeliveryNoteItem[]>(existingDeliveryNote?.items || []);
+  const [items, setItems] = useState<DeliveryNoteItem[]>(existingDeliveryNote?.items || prefill?.items || []);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
