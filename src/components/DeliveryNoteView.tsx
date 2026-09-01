@@ -102,34 +102,57 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
     doc.setFont("helvetica", "bold");
     doc.setTextColor(100, 100, 100);
     doc.text("DATE", 14, y);
-    doc.text("DELIVERY DATE", 70, y);
-    doc.text("STATUS", 126, y);
+    doc.text("DELIVERY DATE", 60, y);
+    doc.text("STATUS", 110, y);
+    doc.text("ORDER / REF NO.", 150, y);
     y += 5;
     doc.setFont("helvetica", "normal");
     doc.setTextColor(30, 30, 30);
     doc.setFontSize(9);
     doc.text(new Date(deliveryNote.createdAt).toLocaleDateString(), 14, y);
-    doc.text(deliveryNote.deliveryDate ? new Date(deliveryNote.deliveryDate).toLocaleDateString() : 'N/A', 70, y);
-    doc.text(deliveryNote.status.charAt(0).toUpperCase() + deliveryNote.status.slice(1), 126, y);
+    doc.text(deliveryNote.deliveryDate ? new Date(deliveryNote.deliveryDate).toLocaleDateString() : 'N/A', 60, y);
+    doc.text(deliveryNote.status.charAt(0).toUpperCase() + deliveryNote.status.slice(1), 110, y);
+    doc.text(deliveryNote.referenceNumber || '-', 150, y);
     y += 10;
 
-    if (deliveryNote.customerName) {
-      doc.setFillColor(249, 250, 251);
-      doc.roundedRect(14, y, w - 28, 22, 2, 2, 'F');
+    if (deliveryNote.customerName || deliveryNote.deliveryAddress) {
       doc.setFontSize(7);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(100, 100, 100);
-      doc.text("DELIVER TO", 20, y + 5);
+      doc.text("DELIVER TO", 14, y);
+      y += 5;
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(30, 30, 30);
-      doc.text(deliveryNote.customerName, 20, y + 11);
-      let cy = y + 15;
-      if (deliveryNote.customerPhone) { doc.setFontSize(8); doc.setTextColor(100); doc.text(deliveryNote.customerPhone, 20, cy); cy += 4; }
-      if (deliveryNote.customerEmail) { doc.setFontSize(8); doc.setTextColor(100); doc.text(deliveryNote.customerEmail, 20, cy); cy += 4; }
-      if (deliveryNote.customerTpin) { doc.setFontSize(8); doc.setTextColor(100); doc.text(`TPIN: ${deliveryNote.customerTpin}`, 20, cy); cy += 4; }
-      y = cy + 4;
+      if (deliveryNote.customerName) { doc.text(deliveryNote.customerName, 14, y); y += 4.5; }
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      if (deliveryNote.deliveryAddress) {
+        const addrLines = doc.splitTextToSize(deliveryNote.deliveryAddress, w - 28);
+        doc.text(addrLines, 14, y);
+        y += addrLines.length * 4;
+      }
+      if (deliveryNote.customerPhone) { doc.text(deliveryNote.customerPhone, 14, y); y += 4; }
+      if (deliveryNote.customerEmail) { doc.text(deliveryNote.customerEmail, 14, y); y += 4; }
+      if (deliveryNote.customerTpin) { doc.text(`TPIN: ${deliveryNote.customerTpin}`, 14, y); y += 4; }
+      y += 4;
     }
+
+    if (deliveryNote.driverName || deliveryNote.vehicleRegistration) {
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 100, 100);
+      doc.text("DELIVERED BY", 14, y);
+      doc.text("VEHICLE REG.", 90, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(30, 30, 30);
+      doc.text(deliveryNote.driverName || '-', 14, y);
+      doc.text(deliveryNote.vehicleRegistration || '-', 90, y);
+      y += 9;
+    }
+
 
     doc.setFillColor(37, 99, 235);
     doc.roundedRect(14, y, w - 28, 9, 1, 1, 'F');
