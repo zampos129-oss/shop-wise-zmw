@@ -25,6 +25,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack, onEdit }: DeliveryNoteViewProps) => {
   const items = deliveryNote.items || [];
   const status = statusConfig[deliveryNote.status] || statusConfig.draft;
+  const showPrices = deliveryNote.showPrices !== false;
 
   const loadImageAsBase64 = (url: string): Promise<string | null> => {
     return new Promise((resolve) => {
