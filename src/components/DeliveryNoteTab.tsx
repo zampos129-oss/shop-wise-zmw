@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useDeliveryNotes, DeliveryNote, DeliveryNoteItem } from "@/hooks/useDeliveryNotes";
 import { Product } from "@/hooks/useProducts";
 import { DocumentBusinessDetails } from "./QuotationView";
 import DeliveryNoteList from "./DeliveryNoteList";
-import DeliveryNoteForm from "./DeliveryNoteForm";
+import DeliveryNoteForm, { DeliveryNotePrefill } from "./DeliveryNoteForm";
 import DeliveryNoteView from "./DeliveryNoteView";
 
 type View = 'list' | 'new' | 'edit' | 'view';
@@ -14,13 +14,19 @@ interface DeliveryNoteTabProps {
   businessName: string;
   businessDetails: DocumentBusinessDetails;
   products: Product[];
+  prefill?: DeliveryNotePrefill | null;
+  onPrefillConsumed?: () => void;
 }
 
-const DeliveryNoteTab = ({ businessId, businessName, businessDetails, products }: DeliveryNoteTabProps) => {
+const DeliveryNoteTab = ({ businessId, businessName, businessDetails, products, prefill, onPrefillConsumed }: DeliveryNoteTabProps) => {
   const { toast } = useToast();
   const { deliveryNotes, isLoading, createDeliveryNote, updateDeliveryNote, softDeleteDeliveryNote, getDeliveryNoteWithItems } = useDeliveryNotes(businessId);
   const [view, setView] = useState<View>('list');
   const [activeDeliveryNote, setActiveDeliveryNote] = useState<DeliveryNote | null>(null);
+
+  useEffect(() => {
+    if (prefill) { setActiveDeliveryNote(null); setView('new'); }
+  }, [prefill]);
 
   const handleNew = () => { setActiveDeliveryNote(null); setView('new'); };
 
