@@ -160,9 +160,13 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
     doc.setFont("helvetica", "bold");
     doc.setTextColor(255, 255, 255);
     doc.text("ITEM", 18, y + 6);
-    doc.text("QTY", 105, y + 6);
-    doc.text("PRICE", 122, y + 6);
-    doc.text("TOTAL", w - 18, y + 6, { align: "right" });
+    if (showPrices) {
+      doc.text("QTY", 105, y + 6);
+      doc.text("PRICE", 122, y + 6);
+      doc.text("TOTAL", w - 18, y + 6, { align: "right" });
+    } else {
+      doc.text("QTY", w - 18, y + 6, { align: "right" });
+    }
     y += 12;
 
     doc.setTextColor(30, 30, 30);
@@ -174,34 +178,42 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
       doc.setFontSize(8.5);
       doc.setTextColor(30, 30, 30);
       doc.text(item.productName.substring(0, 40), 18, y);
-      doc.text(item.quantity.toString(), 108, y);
-      doc.text(`K${item.unitPrice.toFixed(2)}`, 122, y);
-      doc.setFont("helvetica", "bold");
-      doc.text(`K${item.lineTotal.toFixed(2)}`, w - 18, y, { align: "right" });
+      if (showPrices) {
+        doc.text(item.quantity.toString(), 108, y);
+        doc.text(`K${item.unitPrice.toFixed(2)}`, 122, y);
+        doc.setFont("helvetica", "bold");
+        doc.text(`K${item.lineTotal.toFixed(2)}`, w - 18, y, { align: "right" });
+      } else {
+        doc.setFont("helvetica", "bold");
+        doc.text(item.quantity.toString(), w - 18, y, { align: "right" });
+      }
       y += 8;
     });
 
     y += 4;
 
-    ensureSpace(30);
-    doc.setDrawColor(230, 230, 230);
-    doc.line(110, y, w - 14, y);
-    y += 6;
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-    doc.text("Subtotal", 120, y);
-    const sub = items.reduce((s, i) => s + i.lineTotal, 0);
-    doc.text(`K${sub.toFixed(2)}`, w - 18, y, { align: "right" });
-    y += 6;
-    doc.setFillColor(37, 99, 235);
-    doc.roundedRect(110, y - 1, w - 124, 12, 2, 2, 'F');
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(255, 255, 255);
-    doc.text("TOTAL", 116, y + 7);
-    doc.text(`K${sub.toFixed(2)}`, w - 18, y + 7, { align: "right" });
-    y += 18;
+    if (showPrices) {
+      ensureSpace(30);
+      doc.setDrawColor(230, 230, 230);
+      doc.line(110, y, w - 14, y);
+      y += 6;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      doc.text("Subtotal", 120, y);
+      const sub = items.reduce((s, i) => s + i.lineTotal, 0);
+      doc.text(`K${sub.toFixed(2)}`, w - 18, y, { align: "right" });
+      y += 6;
+      doc.setFillColor(37, 99, 235);
+      doc.roundedRect(110, y - 1, w - 124, 12, 2, 2, 'F');
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255);
+      doc.text("TOTAL", 116, y + 7);
+      doc.text(`K${sub.toFixed(2)}`, w - 18, y + 7, { align: "right" });
+      y += 18;
+    }
+
 
     const paymentLines: string[] = [];
     if (businessDetails.showBankOnDocuments !== false) {
