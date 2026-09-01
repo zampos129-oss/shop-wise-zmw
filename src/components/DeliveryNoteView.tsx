@@ -368,19 +368,35 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
               <Badge className={`${status.className} text-xs mt-0.5`}>{status.label}</Badge>
             </div>
             <div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"><User className="h-3 w-3" /> Updated</p>
-              <p className="font-medium">{new Date(deliveryNote.updatedAt).toLocaleDateString()}</p>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Hash className="h-3 w-3" /> Order / Ref No.</p>
+              <p className="font-medium">{deliveryNote.referenceNumber || '—'}</p>
             </div>
           </div>
 
-          {deliveryNote.customerName && (
+          {(deliveryNote.customerName || deliveryNote.deliveryAddress) && (
             <div className="bg-muted/50 rounded-lg p-4">
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1"><User className="h-3 w-3" /> Deliver To</p>
-              <p className="font-semibold">{deliveryNote.customerName}</p>
+              {deliveryNote.customerName && <p className="font-semibold">{deliveryNote.customerName}</p>}
+              {deliveryNote.deliveryAddress && (
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap mt-0.5">{deliveryNote.deliveryAddress}</p>
+              )}
               <div className="text-xs text-muted-foreground flex gap-3 mt-0.5 flex-wrap">
                 {deliveryNote.customerPhone && <span>{deliveryNote.customerPhone}</span>}
                 {deliveryNote.customerEmail && <span>{deliveryNote.customerEmail}</span>}
                 {deliveryNote.customerTpin && <span>TPIN: {deliveryNote.customerTpin}</span>}
+              </div>
+            </div>
+          )}
+
+          {(deliveryNote.driverName || deliveryNote.vehicleRegistration) && (
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Truck className="h-3 w-3" /> Delivered By</p>
+                <p className="font-medium">{deliveryNote.driverName || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Truck className="h-3 w-3" /> Vehicle Reg.</p>
+                <p className="font-medium">{deliveryNote.vehicleRegistration || '—'}</p>
               </div>
             </div>
           )}
@@ -390,37 +406,40 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
               <thead>
                 <tr className="bg-primary text-primary-foreground">
                   <th className="text-left py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Item</th>
-                  <th className="text-center py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Qty</th>
-                  <th className="text-right py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Price</th>
-                  <th className="text-right py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Total</th>
+                  <th className={`py-2.5 px-3 font-semibold text-xs uppercase tracking-wider ${showPrices ? 'text-center' : 'text-right'}`}>Qty</th>
+                  {showPrices && <th className="text-right py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Price</th>}
+                  {showPrices && <th className="text-right py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Total</th>}
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, idx) => (
                   <tr key={idx} className={idx % 2 === 0 ? 'bg-muted/30' : ''}>
                     <td className="py-2.5 px-3 font-medium">{item.productName}</td>
-                    <td className="py-2.5 px-3 text-center">{item.quantity}</td>
-                    <td className="py-2.5 px-3 text-right">K{item.unitPrice.toFixed(2)}</td>
-                    <td className="py-2.5 px-3 text-right font-bold">K{item.lineTotal.toFixed(2)}</td>
+                    <td className={`py-2.5 px-3 ${showPrices ? 'text-center' : 'text-right font-bold'}`}>{item.quantity}</td>
+                    {showPrices && <td className="py-2.5 px-3 text-right">K{item.unitPrice.toFixed(2)}</td>}
+                    {showPrices && <td className="py-2.5 px-3 text-right font-bold">K{item.lineTotal.toFixed(2)}</td>}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <div className="flex justify-end">
-            <div className="w-full max-w-xs space-y-1.5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>K{items.reduce((s, i) => s + i.lineTotal, 0).toFixed(2)}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center bg-primary text-primary-foreground rounded-lg px-4 py-2.5">
-                <span className="font-bold text-base">TOTAL</span>
-                <span className="font-bold text-lg">K{items.reduce((s, i) => s + i.lineTotal, 0).toFixed(2)}</span>
+          {showPrices && (
+            <div className="flex justify-end">
+              <div className="w-full max-w-xs space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>K{items.reduce((s, i) => s + i.lineTotal, 0).toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center bg-primary text-primary-foreground rounded-lg px-4 py-2.5">
+                  <span className="font-bold text-base">TOTAL</span>
+                  <span className="font-bold text-lg">K{items.reduce((s, i) => s + i.lineTotal, 0).toFixed(2)}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
 
           {businessDetails.showBankOnDocuments !== false && (
             <div className="border-t border-border pt-4">
