@@ -260,7 +260,34 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
       doc.text(lines, 14, y);
+      y += lines.length * 4 + 4;
     }
+
+    // Signature block
+    ensureSpace(34);
+    y += 8;
+    doc.setDrawColor(160, 160, 160);
+    doc.line(14, y, 90, y);
+    doc.line(w - 90, y, w - 14, y);
+    y += 4;
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(100, 100, 100);
+    doc.text("DELIVERED BY", 14, y);
+    doc.text("RECEIVED BY", w - 90, y);
+    y += 4.5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(30, 30, 30);
+    doc.text(deliveryNote.driverName || "", 14, y);
+    doc.text(deliveryNote.receivedBy || "", w - 90, y);
+    y += 8;
+    doc.setFontSize(7.5);
+    doc.setTextColor(140, 140, 140);
+    doc.text("Signature / Date: ______________________", 14, y);
+    doc.text("Signature / Date: ______________________", w - 90, y);
+
+
 
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
