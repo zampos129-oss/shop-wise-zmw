@@ -25,6 +25,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack, onEdit }: DeliveryNoteViewProps) => {
   const items = deliveryNote.items || [];
   const status = statusConfig[deliveryNote.status] || statusConfig.draft;
+  const showPrices = deliveryNote.showPrices !== false;
 
   const loadImageAsBase64 = (url: string): Promise<string | null> => {
     return new Promise((resolve) => {
@@ -101,34 +102,57 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
     doc.setFont("helvetica", "bold");
     doc.setTextColor(100, 100, 100);
     doc.text("DATE", 14, y);
-    doc.text("DELIVERY DATE", 70, y);
-    doc.text("STATUS", 126, y);
+    doc.text("DELIVERY DATE", 60, y);
+    doc.text("STATUS", 110, y);
+    doc.text("ORDER / REF NO.", 150, y);
     y += 5;
     doc.setFont("helvetica", "normal");
     doc.setTextColor(30, 30, 30);
     doc.setFontSize(9);
     doc.text(new Date(deliveryNote.createdAt).toLocaleDateString(), 14, y);
-    doc.text(deliveryNote.deliveryDate ? new Date(deliveryNote.deliveryDate).toLocaleDateString() : 'N/A', 70, y);
-    doc.text(deliveryNote.status.charAt(0).toUpperCase() + deliveryNote.status.slice(1), 126, y);
+    doc.text(deliveryNote.deliveryDate ? new Date(deliveryNote.deliveryDate).toLocaleDateString() : 'N/A', 60, y);
+    doc.text(deliveryNote.status.charAt(0).toUpperCase() + deliveryNote.status.slice(1), 110, y);
+    doc.text(deliveryNote.referenceNumber || '-', 150, y);
     y += 10;
 
-    if (deliveryNote.customerName) {
-      doc.setFillColor(249, 250, 251);
-      doc.roundedRect(14, y, w - 28, 22, 2, 2, 'F');
+    if (deliveryNote.customerName || deliveryNote.deliveryAddress) {
       doc.setFontSize(7);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(100, 100, 100);
-      doc.text("DELIVER TO", 20, y + 5);
+      doc.text("DELIVER TO", 14, y);
+      y += 5;
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(30, 30, 30);
-      doc.text(deliveryNote.customerName, 20, y + 11);
-      let cy = y + 15;
-      if (deliveryNote.customerPhone) { doc.setFontSize(8); doc.setTextColor(100); doc.text(deliveryNote.customerPhone, 20, cy); cy += 4; }
-      if (deliveryNote.customerEmail) { doc.setFontSize(8); doc.setTextColor(100); doc.text(deliveryNote.customerEmail, 20, cy); cy += 4; }
-      if (deliveryNote.customerTpin) { doc.setFontSize(8); doc.setTextColor(100); doc.text(`TPIN: ${deliveryNote.customerTpin}`, 20, cy); cy += 4; }
-      y = cy + 4;
+      if (deliveryNote.customerName) { doc.text(deliveryNote.customerName, 14, y); y += 4.5; }
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      if (deliveryNote.deliveryAddress) {
+        const addrLines = doc.splitTextToSize(deliveryNote.deliveryAddress, w - 28);
+        doc.text(addrLines, 14, y);
+        y += addrLines.length * 4;
+      }
+      if (deliveryNote.customerPhone) { doc.text(deliveryNote.customerPhone, 14, y); y += 4; }
+      if (deliveryNote.customerEmail) { doc.text(deliveryNote.customerEmail, 14, y); y += 4; }
+      if (deliveryNote.customerTpin) { doc.text(`TPIN: ${deliveryNote.customerTpin}`, 14, y); y += 4; }
+      y += 4;
     }
+
+    if (deliveryNote.driverName || deliveryNote.vehicleRegistration) {
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 100, 100);
+      doc.text("DELIVERED BY", 14, y);
+      doc.text("VEHICLE REG.", 90, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(30, 30, 30);
+      doc.text(deliveryNote.driverName || '-', 14, y);
+      doc.text(deliveryNote.vehicleRegistration || '-', 90, y);
+      y += 9;
+    }
+
 
     doc.setFillColor(37, 99, 235);
     doc.roundedRect(14, y, w - 28, 9, 1, 1, 'F');
@@ -136,9 +160,13 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
     doc.setFont("helvetica", "bold");
     doc.setTextColor(255, 255, 255);
     doc.text("ITEM", 18, y + 6);
-    doc.text("QTY", 105, y + 6);
-    doc.text("PRICE", 122, y + 6);
-    doc.text("TOTAL", w - 18, y + 6, { align: "right" });
+    if (showPrices) {
+      doc.text("QTY", 105, y + 6);
+      doc.text("PRICE", 122, y + 6);
+      doc.text("TOTAL", w - 18, y + 6, { align: "right" });
+    } else {
+      doc.text("QTY", w - 18, y + 6, { align: "right" });
+    }
     y += 12;
 
     doc.setTextColor(30, 30, 30);
@@ -150,34 +178,42 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
       doc.setFontSize(8.5);
       doc.setTextColor(30, 30, 30);
       doc.text(item.productName.substring(0, 40), 18, y);
-      doc.text(item.quantity.toString(), 108, y);
-      doc.text(`K${item.unitPrice.toFixed(2)}`, 122, y);
-      doc.setFont("helvetica", "bold");
-      doc.text(`K${item.lineTotal.toFixed(2)}`, w - 18, y, { align: "right" });
+      if (showPrices) {
+        doc.text(item.quantity.toString(), 108, y);
+        doc.text(`K${item.unitPrice.toFixed(2)}`, 122, y);
+        doc.setFont("helvetica", "bold");
+        doc.text(`K${item.lineTotal.toFixed(2)}`, w - 18, y, { align: "right" });
+      } else {
+        doc.setFont("helvetica", "bold");
+        doc.text(item.quantity.toString(), w - 18, y, { align: "right" });
+      }
       y += 8;
     });
 
     y += 4;
 
-    ensureSpace(30);
-    doc.setDrawColor(230, 230, 230);
-    doc.line(110, y, w - 14, y);
-    y += 6;
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-    doc.text("Subtotal", 120, y);
-    const sub = items.reduce((s, i) => s + i.lineTotal, 0);
-    doc.text(`K${sub.toFixed(2)}`, w - 18, y, { align: "right" });
-    y += 6;
-    doc.setFillColor(37, 99, 235);
-    doc.roundedRect(110, y - 1, w - 124, 12, 2, 2, 'F');
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(255, 255, 255);
-    doc.text("TOTAL", 116, y + 7);
-    doc.text(`K${sub.toFixed(2)}`, w - 18, y + 7, { align: "right" });
-    y += 18;
+    if (showPrices) {
+      ensureSpace(30);
+      doc.setDrawColor(230, 230, 230);
+      doc.line(110, y, w - 14, y);
+      y += 6;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      doc.text("Subtotal", 120, y);
+      const sub = items.reduce((s, i) => s + i.lineTotal, 0);
+      doc.text(`K${sub.toFixed(2)}`, w - 18, y, { align: "right" });
+      y += 6;
+      doc.setFillColor(37, 99, 235);
+      doc.roundedRect(110, y - 1, w - 124, 12, 2, 2, 'F');
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255);
+      doc.text("TOTAL", 116, y + 7);
+      doc.text(`K${sub.toFixed(2)}`, w - 18, y + 7, { align: "right" });
+      y += 18;
+    }
+
 
     const paymentLines: string[] = [];
     if (businessDetails.showBankOnDocuments !== false) {
@@ -224,7 +260,34 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
       doc.text(lines, 14, y);
+      y += lines.length * 4 + 4;
     }
+
+    // Signature block
+    ensureSpace(34);
+    y += 8;
+    doc.setDrawColor(160, 160, 160);
+    doc.line(14, y, 90, y);
+    doc.line(w - 90, y, w - 14, y);
+    y += 4;
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(100, 100, 100);
+    doc.text("DELIVERED BY", 14, y);
+    doc.text("RECEIVED BY", w - 90, y);
+    y += 4.5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(30, 30, 30);
+    doc.text(deliveryNote.driverName || "", 14, y);
+    doc.text(deliveryNote.receivedBy || "", w - 90, y);
+    y += 8;
+    doc.setFontSize(7.5);
+    doc.setTextColor(140, 140, 140);
+    doc.text("Signature / Date: ______________________", 14, y);
+    doc.text("Signature / Date: ______________________", w - 90, y);
+
+
 
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
@@ -305,19 +368,35 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
               <Badge className={`${status.className} text-xs mt-0.5`}>{status.label}</Badge>
             </div>
             <div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"><User className="h-3 w-3" /> Updated</p>
-              <p className="font-medium">{new Date(deliveryNote.updatedAt).toLocaleDateString()}</p>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Hash className="h-3 w-3" /> Order / Ref No.</p>
+              <p className="font-medium">{deliveryNote.referenceNumber || '—'}</p>
             </div>
           </div>
 
-          {deliveryNote.customerName && (
+          {(deliveryNote.customerName || deliveryNote.deliveryAddress) && (
             <div className="bg-muted/50 rounded-lg p-4">
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1"><User className="h-3 w-3" /> Deliver To</p>
-              <p className="font-semibold">{deliveryNote.customerName}</p>
+              {deliveryNote.customerName && <p className="font-semibold">{deliveryNote.customerName}</p>}
+              {deliveryNote.deliveryAddress && (
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap mt-0.5">{deliveryNote.deliveryAddress}</p>
+              )}
               <div className="text-xs text-muted-foreground flex gap-3 mt-0.5 flex-wrap">
                 {deliveryNote.customerPhone && <span>{deliveryNote.customerPhone}</span>}
                 {deliveryNote.customerEmail && <span>{deliveryNote.customerEmail}</span>}
                 {deliveryNote.customerTpin && <span>TPIN: {deliveryNote.customerTpin}</span>}
+              </div>
+            </div>
+          )}
+
+          {(deliveryNote.driverName || deliveryNote.vehicleRegistration) && (
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Truck className="h-3 w-3" /> Delivered By</p>
+                <p className="font-medium">{deliveryNote.driverName || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Truck className="h-3 w-3" /> Vehicle Reg.</p>
+                <p className="font-medium">{deliveryNote.vehicleRegistration || '—'}</p>
               </div>
             </div>
           )}
@@ -327,37 +406,40 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
               <thead>
                 <tr className="bg-primary text-primary-foreground">
                   <th className="text-left py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Item</th>
-                  <th className="text-center py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Qty</th>
-                  <th className="text-right py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Price</th>
-                  <th className="text-right py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Total</th>
+                  <th className={`py-2.5 px-3 font-semibold text-xs uppercase tracking-wider ${showPrices ? 'text-center' : 'text-right'}`}>Qty</th>
+                  {showPrices && <th className="text-right py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Price</th>}
+                  {showPrices && <th className="text-right py-2.5 px-3 font-semibold text-xs uppercase tracking-wider">Total</th>}
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, idx) => (
                   <tr key={idx} className={idx % 2 === 0 ? 'bg-muted/30' : ''}>
                     <td className="py-2.5 px-3 font-medium">{item.productName}</td>
-                    <td className="py-2.5 px-3 text-center">{item.quantity}</td>
-                    <td className="py-2.5 px-3 text-right">K{item.unitPrice.toFixed(2)}</td>
-                    <td className="py-2.5 px-3 text-right font-bold">K{item.lineTotal.toFixed(2)}</td>
+                    <td className={`py-2.5 px-3 ${showPrices ? 'text-center' : 'text-right font-bold'}`}>{item.quantity}</td>
+                    {showPrices && <td className="py-2.5 px-3 text-right">K{item.unitPrice.toFixed(2)}</td>}
+                    {showPrices && <td className="py-2.5 px-3 text-right font-bold">K{item.lineTotal.toFixed(2)}</td>}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <div className="flex justify-end">
-            <div className="w-full max-w-xs space-y-1.5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>K{items.reduce((s, i) => s + i.lineTotal, 0).toFixed(2)}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center bg-primary text-primary-foreground rounded-lg px-4 py-2.5">
-                <span className="font-bold text-base">TOTAL</span>
-                <span className="font-bold text-lg">K{items.reduce((s, i) => s + i.lineTotal, 0).toFixed(2)}</span>
+          {showPrices && (
+            <div className="flex justify-end">
+              <div className="w-full max-w-xs space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>K{items.reduce((s, i) => s + i.lineTotal, 0).toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center bg-primary text-primary-foreground rounded-lg px-4 py-2.5">
+                  <span className="font-bold text-base">TOTAL</span>
+                  <span className="font-bold text-lg">K{items.reduce((s, i) => s + i.lineTotal, 0).toFixed(2)}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
 
           {businessDetails.showBankOnDocuments !== false && (
             <div className="border-t border-border pt-4">
@@ -392,7 +474,23 @@ const DeliveryNoteView = ({ deliveryNote, businessName, businessDetails, onBack,
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{deliveryNote.notes}</p>
             </div>
           )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-border pt-6">
+            <div>
+              <div className="border-b border-muted-foreground/50 h-6" />
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-1">Delivered By</p>
+              <p className="text-sm font-medium">{deliveryNote.driverName || '—'}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Signature / Date</p>
+            </div>
+            <div>
+              <div className="border-b border-muted-foreground/50 h-6" />
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-1">Received By</p>
+              <p className="text-sm font-medium">{deliveryNote.receivedBy || '—'}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Signature / Date</p>
+            </div>
+          </div>
         </div>
+
 
         <div className="text-center text-[10px] text-muted-foreground py-2 border-t border-border bg-muted/30">
           Generated by ZamPOS
