@@ -35,10 +35,11 @@ interface QuotationTabProps {
   businessDetails: BusinessDetailsExt;
   products: Product[];
   isService?: boolean;
+  onCreateDeliveryNote?: (prefill: { customerName: string | null; customerPhone: string | null; customerEmail: string | null; customerTpin: string | null; referenceNumber: string | null; notes: string | null; items: Array<{ productId: string | null; productName: string; quantity: number; unitPrice: number; lineTotal: number }> }) => void;
   onConvertToSale: (items: Array<{ productId: string; name: string; price: number; quantity: number; discountType?: string | null; discountValue?: number }>, discountType: string | null, discountValue: number) => void;
 }
 
-const QuotationTab = ({ businessId, businessName, businessDetails, products, isService, onConvertToSale }: QuotationTabProps) => {
+const QuotationTab = ({ businessId, businessName, businessDetails, products, isService, onConvertToSale, onCreateDeliveryNote }: QuotationTabProps) => {
   const { toast } = useToast();
   const { quotations, isLoading, createQuotation, updateQuotation, softDeleteQuotation, getQuotationWithItems, markConverted } = useQuotations(businessId);
   const [view, setView] = useState<View>('list');
@@ -113,6 +114,34 @@ const QuotationTab = ({ businessId, businessName, businessDetails, products, isS
     }
   };
 
+  const handleDeliveryNote = async (id: string) => {
+    try {
+      const q = await getQuotationWithItems(id);
+      if (!q || !q.items || q.items.length === 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Quotation has no items.' });
+        return;
+      }
+      onCreateDeliveryNote?.({
+        customerName: q.customerName ?? null,
+        customerPhone: q.customerPhone ?? null,
+        customerEmail: q.customerEmail ?? null,
+        customerTpin: q.customerTpin ?? null,
+        referenceNumber: q.quotationNumber,
+        notes: q.notes ?? null,
+        items: q.items.map(i => ({
+          productId: i.productId || null,
+          productName: i.productName,
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+          lineTotal: i.lineTotal,
+        })),
+      });
+      toast({ title: 'Delivery note started', description: `Details copied from ${q.quotationNumber}.` });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Error', description: e.message });
+    }
+  };
+
   const handlePrint = async (id: string) => {
     const q = await getQuotationWithItems(id);
     if (q) { setActiveQuotation(q); setView('view'); }
@@ -129,6 +158,7 @@ const QuotationTab = ({ businessId, businessName, businessDetails, products, isS
           onEdit={handleEdit}
           onDelete={handleDelete}
           onConvert={(id) => setConvertId(id)}
+          onDeliveryNote={handleDeliveryNote}
           onPrint={handlePrint}
         />
       )}
