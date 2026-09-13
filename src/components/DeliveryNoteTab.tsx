@@ -59,6 +59,7 @@ const DeliveryNoteTab = ({ businessId, businessName, businessDetails, products, 
     items: DeliveryNoteItem[]
   ) => {
     await createDeliveryNote(d, items);
+    onPrefillConsumed?.();
     setView('list');
   };
 
