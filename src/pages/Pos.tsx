@@ -16,6 +16,7 @@ import ReceiptModal from "@/components/ReceiptModal";
 import LockScreen from "@/components/LockScreen";
 import QuotationTab from "@/components/QuotationTab";
 import DeliveryNoteTab from "@/components/DeliveryNoteTab";
+import type { DeliveryNotePrefill } from "@/components/DeliveryNoteForm";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useBusiness } from "@/hooks/useBusiness";
 import { useProducts } from "@/hooks/useProducts";
@@ -69,6 +70,7 @@ const Pos = () => {
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("sale");
+  const [deliveryPrefill, setDeliveryPrefill] = useState<DeliveryNotePrefill | null>(null);
 
   // Discount state
   const [saleDiscountType, setSaleDiscountType] = useState<'percentage' | 'amount' | null>(null);
@@ -820,6 +822,7 @@ const Pos = () => {
                 products={activeProducts}
                 isService={isService}
                 onConvertToSale={handleConvertQuotation}
+                onCreateDeliveryNote={(prefill) => { setDeliveryPrefill(prefill); setActiveTab("delivery-notes"); }}
               />
             </TabsContent>
 
@@ -843,6 +846,8 @@ const Pos = () => {
                   showBankOnDocuments: business.showBankOnDocuments,
                 }}
                 products={activeProducts}
+                prefill={deliveryPrefill}
+                onPrefillConsumed={() => setDeliveryPrefill(null)}
               />
             </TabsContent>
           </Tabs>

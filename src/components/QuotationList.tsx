@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, Plus, Eye, Edit, Trash2, ShoppingCart, Download, Printer, Search } from "lucide-react";
+import { FileText, Plus, Eye, Edit, Trash2, ShoppingCart, Download, Printer, Search, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ interface QuotationListProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onConvert: (id: string) => void;
+  onDeliveryNote: (id: string) => void;
   onPrint: (id: string) => void;
 }
 
@@ -27,7 +28,7 @@ const statusColors: Record<string, string> = {
   converted: 'bg-accent/15 text-accent',
 };
 
-const QuotationList = ({ quotations, isLoading, onNew, onView, onEdit, onDelete, onConvert, onPrint }: QuotationListProps) => {
+const QuotationList = ({ quotations, isLoading, onNew, onView, onEdit, onDelete, onConvert, onDeliveryNote, onPrint }: QuotationListProps) => {
   const [search, setSearch] = useState("");
 
   const filtered = quotations.filter(q => {
@@ -87,6 +88,9 @@ const QuotationList = ({ quotations, isLoading, onNew, onView, onEdit, onDelete,
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onConvert(q.id)} title="Convert to Sale">
                           <ShoppingCart className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDeliveryNote(q.id)} title="Convert to Delivery Note">
+                          <Truck className="h-3.5 w-3.5" />
                         </Button>
                       </>
                     )}
