@@ -87,9 +87,11 @@ const DeliveryNoteTab = ({ businessId, businessName, businessDetails, products, 
 
       {view === 'new' && (
         <DeliveryNoteForm
+          key={prefill ? 'prefilled' : 'blank'}
           products={products}
+          prefill={prefill ?? null}
           onSave={handleSaveNew}
-          onCancel={() => setView('list')}
+          onCancel={() => { onPrefillConsumed?.(); setView('list'); }}
         />
       )}
 
