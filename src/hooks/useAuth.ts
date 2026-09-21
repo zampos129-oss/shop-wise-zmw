@@ -14,12 +14,17 @@ interface AuthState {
 }
 
 export const useAuth = () => {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    session: null,
-    isLoading: true,
-    isSuperAdmin: false,
-    role: 'unknown',
+  const [authState, setAuthState] = useState<AuthState>(() => {
+    // Hydrate the last known role instantly so an offline / cold boot never
+    // flashes an "unknown" role (which would bounce users off their page).
+    const cached = getCachedIdentity();
+    return {
+      user: null,
+      session: null,
+      isLoading: true,
+      isSuperAdmin: cached?.isSuperAdmin ?? false,
+      role: (cached?.role as UserRole) ?? 'unknown',
+    };
   });
 
   const initialCheckDone = useRef(false);
@@ -158,6 +163,7 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
+    clearCachedIdentity();
     const { error } = await supabase.auth.signOut();
     return { error };
   };
