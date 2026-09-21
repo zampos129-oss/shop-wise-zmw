@@ -87,6 +87,7 @@ export const useBusiness = (userId: string | undefined) => {
       isLocked: row.is_locked,
     });
 
+    const mapped = mapBusinessRow(row);
     await cacheBusiness({
       id: row.id,
       name: row.name,
@@ -98,7 +99,28 @@ export const useBusiness = (userId: string | undefined) => {
       phone: row.phone,
       email: row.email,
       address: row.address,
+      logoUrl: mapped.logoUrl ?? null,
+      tpin: mapped.tpin ?? null,
+      taxMode: mapped.taxMode,
+      vatNumber: mapped.vatNumber ?? null,
+      vatRate: mapped.vatRate,
+      customTaxName: mapped.customTaxName ?? null,
+      customTaxRate: mapped.customTaxRate ?? null,
+      planTier: mapped.planTier ?? null,
+      bankName: mapped.bankName ?? null,
+      bankAccountName: mapped.bankAccountName ?? null,
+      bankAccountNumber: mapped.bankAccountNumber ?? null,
+      bankBranch: mapped.bankBranch ?? null,
+      bankSwift: mapped.bankSwift ?? null,
+      mobileMoneyName: mapped.mobileMoneyName ?? null,
+      mobileMoneyNumber: mapped.mobileMoneyNumber ?? null,
+      showBankOnDocuments: mapped.showBankOnDocuments ?? true,
     });
+    try {
+      cacheIdentityBusinessId(row.id);
+    } catch {
+      // ignore
+    }
   }, []);
 
   const loadCachedBusiness = useCallback(async () => {
