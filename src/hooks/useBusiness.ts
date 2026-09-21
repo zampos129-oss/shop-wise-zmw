@@ -10,6 +10,7 @@ import {
   getCachedBusiness,
 } from '@/lib/offlineStorage';
 import { useOnlineStatus } from './useOnlineStatus';
+import { cacheIdentityBusinessId } from '@/lib/sessionCache';
 import type { Database } from '@/integrations/supabase/types';
 
 type BusinessRow = Database['public']['Tables']['businesses']['Row'];
