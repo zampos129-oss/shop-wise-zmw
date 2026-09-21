@@ -1,8 +1,12 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { requestPersistentStorage } from "./lib/persistentStorage";
 
 createRoot(document.getElementById("root")!).render(<App />);
+
+// Protect offline sales / catalog from being evicted by the browser.
+void requestPersistentStorage();
 
 // Service worker is registered inside <PWAUpdatePrompt /> (mounted in App)
 // so we can show a "New version available" toast and auto-reload.

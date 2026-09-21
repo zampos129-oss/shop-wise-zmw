@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { cacheIdentity, getCachedIdentity, clearCachedIdentity } from '@/lib/sessionCache';
 
 export type UserRole = 'owner' | 'cashier' | 'super_admin' | 'unknown';
 
@@ -24,7 +25,21 @@ export const useAuth = () => {
   const initialCheckDone = useRef(false);
   const authEventHandled = useRef(false);
 
-  const resolveRole = useCallback(async (_userId: string) => {
+  const resolveRole = useCallback(async (userId: string) => {
+    const cachedFallback = () => {
+      const cached = getCachedIdentity(userId);
+      if (cached) {
+        return { role: cached.role as UserRole, isSuperAdmin: cached.isSuperAdmin };
+      }
+      return { role: 'unknown' as UserRole, isSuperAdmin: false };
+    };
+
+    // No connection at all: trust the locally cached identity immediately so
+    // the till opens instantly instead of waiting for doomed network calls.
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return cachedFallback();
+    }
+
     // Retry a couple of times to survive transient "Failed to fetch" during
     // PWA boot / cold network wake-up. Backoff is intentionally short so the
     // UI doesn't get stuck on the loading screen.
@@ -33,20 +48,23 @@ export const useAuth = () => {
         const { data, error } = await supabase.rpc('get_my_role');
         if (!error) {
           const role = (data as UserRole) || 'unknown';
+          if (role !== 'unknown') {
+            cacheIdentity({ userId, role, isSuperAdmin: role === 'super_admin' });
+          }
           return { role, isSuperAdmin: role === 'super_admin' };
         }
         // Only retry on network-ish errors; log others once and bail.
         const msg = String(error?.message || '');
         if (!/fetch|network|timeout/i.test(msg)) {
           console.warn('get_my_role failed:', error);
-          return { role: 'unknown' as UserRole, isSuperAdmin: false };
+          return cachedFallback();
         }
       } catch (e) {
         if (attempt === 2) console.warn('resolveRole error:', e);
       }
       await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
     }
-    return { role: 'unknown' as UserRole, isSuperAdmin: false };
+    return cachedFallback();
   }, []);
 
   const applySession = useCallback((session: Session | null, isLoading = false) => {
