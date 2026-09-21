@@ -10,6 +10,7 @@ import {
   getCachedBusiness,
 } from '@/lib/offlineStorage';
 import { useOnlineStatus } from './useOnlineStatus';
+import { cacheIdentityBusinessId } from '@/lib/sessionCache';
 import type { Database } from '@/integrations/supabase/types';
 
 type BusinessRow = Database['public']['Tables']['businesses']['Row'];
@@ -87,6 +88,7 @@ export const useBusiness = (userId: string | undefined) => {
       isLocked: row.is_locked,
     });
 
+    const mapped = mapBusinessRow(row);
     await cacheBusiness({
       id: row.id,
       name: row.name,
@@ -98,7 +100,28 @@ export const useBusiness = (userId: string | undefined) => {
       phone: row.phone,
       email: row.email,
       address: row.address,
+      logoUrl: mapped.logoUrl ?? null,
+      tpin: mapped.tpin ?? null,
+      taxMode: mapped.taxMode,
+      vatNumber: mapped.vatNumber ?? null,
+      vatRate: mapped.vatRate,
+      customTaxName: mapped.customTaxName ?? null,
+      customTaxRate: mapped.customTaxRate ?? null,
+      planTier: mapped.planTier ?? null,
+      bankName: mapped.bankName ?? null,
+      bankAccountName: mapped.bankAccountName ?? null,
+      bankAccountNumber: mapped.bankAccountNumber ?? null,
+      bankBranch: mapped.bankBranch ?? null,
+      bankSwift: mapped.bankSwift ?? null,
+      mobileMoneyName: mapped.mobileMoneyName ?? null,
+      mobileMoneyNumber: mapped.mobileMoneyNumber ?? null,
+      showBankOnDocuments: mapped.showBankOnDocuments ?? true,
     });
+    try {
+      cacheIdentityBusinessId(row.id);
+    } catch {
+      // ignore
+    }
   }, []);
 
   const loadCachedBusiness = useCallback(async () => {
@@ -119,8 +142,22 @@ export const useBusiness = (userId: string | undefined) => {
         phone: cachedBiz.phone,
         email: cachedBiz.email,
         address: cachedBiz.address,
-        taxMode: 'none',
-        vatRate: 16,
+        logoUrl: cachedBiz.logoUrl ?? null,
+        tpin: cachedBiz.tpin ?? null,
+        taxMode: cachedBiz.taxMode ?? 'none',
+        vatNumber: cachedBiz.vatNumber ?? null,
+        vatRate: cachedBiz.vatRate ?? 16,
+        customTaxName: cachedBiz.customTaxName ?? null,
+        customTaxRate: cachedBiz.customTaxRate ?? null,
+        planTier: cachedBiz.planTier ?? null,
+        bankName: cachedBiz.bankName ?? null,
+        bankAccountName: cachedBiz.bankAccountName ?? null,
+        bankAccountNumber: cachedBiz.bankAccountNumber ?? null,
+        bankBranch: cachedBiz.bankBranch ?? null,
+        bankSwift: cachedBiz.bankSwift ?? null,
+        mobileMoneyName: cachedBiz.mobileMoneyName ?? null,
+        mobileMoneyNumber: cachedBiz.mobileMoneyNumber ?? null,
+        showBankOnDocuments: cachedBiz.showBankOnDocuments ?? true,
       });
       return;
     }
