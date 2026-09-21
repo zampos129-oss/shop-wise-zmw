@@ -78,6 +78,23 @@ interface CachedBusiness {
   phone: string | null;
   email: string | null;
   address: string | null;
+  // Branding / receipt + document fields so offline documents look identical
+  logoUrl?: string | null;
+  tpin?: string | null;
+  taxMode?: 'none' | 'vat' | 'custom';
+  vatNumber?: string | null;
+  vatRate?: number;
+  customTaxName?: string | null;
+  customTaxRate?: number | null;
+  planTier?: string | null;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankBranch?: string | null;
+  bankSwift?: string | null;
+  mobileMoneyName?: string | null;
+  mobileMoneyNumber?: string | null;
+  showBankOnDocuments?: boolean;
 }
 
 let dbInstance: IDBDatabase | null = null;
