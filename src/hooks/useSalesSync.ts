@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getUnsyncedSales, markSaleAsSynced } from "@/lib/offlineStorage";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { syncPendingProducts } from "@/lib/productSync";
 
 export function useSalesSync(businessId: string | undefined) {
   const { isOnline } = useOnlineStatus();
@@ -32,6 +33,10 @@ export function useSalesSync(businessId: string | undefined) {
     setLastSyncError(null);
 
     try {
+      // Push products created offline FIRST so sale line items referencing a
+      // temporary local product id are rewritten to their cloud id.
+      await syncPendingProducts(businessId);
+
       const unsynced = await getUnsyncedSales(businessId);
       setPendingCount(unsynced.length);
 
