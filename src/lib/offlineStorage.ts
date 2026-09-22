@@ -1,7 +1,7 @@
 // Offline storage utilities using IndexedDB and localStorage
 
 const DB_NAME = 'zampos_db';
-const DB_VERSION = 4; // Bumped for resilient cache refresh
+const DB_VERSION = 5; // Bumped for offline product creation queue
 
 interface OfflineSale {
   id: string;
@@ -149,6 +149,12 @@ export const initDB = (): Promise<IDBDatabase> => {
       if (!db.objectStoreNames.contains('debtors')) {
         const debtorsStore = db.createObjectStore('debtors', { keyPath: 'id' });
         debtorsStore.createIndex('businessId', 'businessId', { unique: false });
+      }
+
+      // Products created while offline, waiting to be pushed to the cloud.
+      if (!db.objectStoreNames.contains('pendingProducts')) {
+        const pendingStore = db.createObjectStore('pendingProducts', { keyPath: 'id' });
+        pendingStore.createIndex('businessId', 'businessId', { unique: false });
       }
     };
   });
@@ -509,6 +515,103 @@ export const updateCachedDebtor = async (debtor: CachedDebtor): Promise<void> =>
     const request = store.put(debtor);
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
+  });
+};
+
+// ---------------------------------------------------------------------------
+// Offline product creation queue
+// ---------------------------------------------------------------------------
+
+export interface PendingProduct {
+  id: string;                // temporary local id (off_prod_...)
+  businessId: string;
+  createdAt: string;
+  payload: Record<string, unknown>; // exact column payload for the products table
+}
+
+export const queuePendingProduct = async (pending: PendingProduct): Promise<void> => {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['pendingProducts'], 'readwrite');
+    const request = transaction.objectStore('pendingProducts').put(pending);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+export const getPendingProducts = async (businessId: string): Promise<PendingProduct[]> => {
+  if (!businessId) return [];
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['pendingProducts'], 'readonly');
+    const request = transaction.objectStore('pendingProducts').getAll();
+    request.onsuccess = () =>
+      resolve((request.result || []).filter((p: PendingProduct) => p.businessId === businessId));
+    request.onerror = () => reject(request.error);
+  });
+};
+
+export const deletePendingProduct = async (id: string): Promise<void> => {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['pendingProducts'], 'readwrite');
+    const request = transaction.objectStore('pendingProducts').delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+// Add or update a single cached product without clearing the catalog, so an
+// item created offline is immediately searchable/scannable on the POS.
+export const upsertCachedProduct = async (product: OfflineProduct): Promise<void> => {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['products'], 'readwrite');
+    const request = transaction.objectStore('products').put(product);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+export const removeCachedProduct = async (productId: string): Promise<void> => {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['products'], 'readwrite');
+    const request = transaction.objectStore('products').delete(productId);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+// Rewrite productIds inside queued offline sales once a temporary offline
+// product id has been replaced by its permanent cloud id.
+export const remapOfflineSaleProductIds = async (idMap: Record<string, string>): Promise<void> => {
+  const keys = Object.keys(idMap);
+  if (keys.length === 0) return;
+
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['sales'], 'readwrite');
+    const store = transaction.objectStore('sales');
+    const request = store.getAll();
+
+    request.onsuccess = () => {
+      for (const sale of request.result || []) {
+        if (sale?.synced === true || !Array.isArray(sale?.items)) continue;
+        let changed = false;
+        sale.items = sale.items.map((item: { productId?: string }) => {
+          if (item?.productId && idMap[item.productId]) {
+            changed = true;
+            return { ...item, productId: idMap[item.productId] };
+          }
+          return item;
+        });
+        if (changed) store.put(sale);
+      }
+    };
+    request.onerror = () => reject(request.error);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
   });
 };
 
