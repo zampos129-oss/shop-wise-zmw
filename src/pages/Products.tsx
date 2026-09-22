@@ -50,6 +50,8 @@ import {
   saveOfflineStockUpdate,
   updateCachedProductStock,
   generateOfflineId,
+  queuePendingProduct,
+  upsertCachedProduct,
 } from "@/lib/offlineStorage";
 
 const NEW_CAT_VALUE = "__new__";
@@ -218,8 +220,8 @@ const Products = () => {
       navigate("/auth");
       return;
     }
-    if (!isOnline) {
-      toast({ variant: "destructive", title: "Offline", description: "Connect to internet to edit products." });
+    if (!isOnline && editing) {
+      toast({ variant: "destructive", title: "Offline", description: "Connect to internet to edit existing items." });
       return;
     }
     if (!name.trim()) {
@@ -248,7 +250,13 @@ const Products = () => {
 
     setSaving(true);
     try {
-      const categoryValue = await resolveCategoryValue();
+      const categoryValue = isOnline
+        ? await resolveCategoryValue()
+        : category === NEW_CAT_VALUE
+          ? (newCategory.trim() || null)
+          : category === NO_CAT_VALUE || !category
+            ? null
+            : category;
 
       const resolvedItemType = isHybrid ? itemType : isService ? "service" : "product";
       const isServiceItem = resolvedItemType === "service";
@@ -265,6 +273,41 @@ const Products = () => {
         barcode: barcode.trim() || null,
         item_type: resolvedItemType,
       };
+
+      if (!isOnline && !editing) {
+        // Save the new item on the device and queue it for upload. It is
+        // immediately sellable on the till with a temporary local id.
+        const localId = `off_prod_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        await queuePendingProduct({
+          id: localId,
+          businessId: business.id,
+          createdAt: new Date().toISOString(),
+          payload,
+        });
+        await upsertCachedProduct({
+          id: localId,
+          businessId: business.id,
+          name: payload.name,
+          price: payload.price,
+          costPrice: payload.cost_price,
+          stock: payload.stock,
+          minimumStock: payload.minimum_stock,
+          category: payload.category,
+          isActive: true,
+          taxCategory: payload.tax_category as any,
+          imageUrl: null,
+          imagePath: null,
+          parentId: null,
+          variantLabel: null,
+          ...({ itemType: payload.item_type, barcode: payload.barcode } as any),
+        } as any);
+
+        toast({ title: "Saved on this device", description: "It will upload automatically when you're back online." });
+        setOpen(false);
+        resetForm();
+        await refetch();
+        return;
+      }
 
       if (editing) {
         const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
@@ -927,7 +970,11 @@ const Products = () => {
                 : `Add ${itemType === "service" ? "Service" : "Product"}`}
             </DialogTitle>
             <DialogDescription>
-              {isOnline ? "" : "Connect to internet to save changes."}
+              {isOnline
+                ? ""
+                : editing
+                  ? "Connect to internet to change existing items."
+                  : "No internet — this will be saved on the device and uploaded later."}
             </DialogDescription>
           </DialogHeader>
 
@@ -1094,9 +1141,9 @@ const Products = () => {
               variant="pos-accent"
               className="w-full"
               onClick={save}
-              disabled={!isOnline || saving}
+              disabled={saving || (!isOnline && !!editing)}
             >
-              {saving ? "Saving…" : "Save"}
+              {saving ? "Saving…" : !isOnline ? "Save Offline" : "Save"}
             </Button>
           </div>
         </DialogContent>
