@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { cacheProducts, getCachedProducts, getUnsyncedSales, getUnsyncedStockUpdates } from "@/lib/offlineStorage";
+import { cacheProducts, getCachedProducts, getPendingProducts, getUnsyncedSales, getUnsyncedStockUpdates } from "@/lib/offlineStorage";
+import { syncPendingProducts } from "@/lib/productSync";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -148,12 +149,17 @@ export function useProducts(businessId: string | undefined) {
 
     try {
       if (isOnline) {
-        const [unsyncedSales, unsyncedStockUpdates] = await Promise.all([
+        // Push offline-created items up before we touch the local catalog,
+        // otherwise a refresh would wipe them.
+        await syncPendingProducts(businessId);
+
+        const [unsyncedSales, unsyncedStockUpdates, stillPending] = await Promise.all([
           getUnsyncedSales(businessId),
           getUnsyncedStockUpdates(businessId),
+          getPendingProducts(businessId),
         ]);
 
-        if (unsyncedSales.length > 0 || unsyncedStockUpdates.length > 0) {
+        if (unsyncedSales.length > 0 || unsyncedStockUpdates.length > 0 || stillPending.length > 0) {
           const cached = await getCachedProducts(businessId);
           setProducts(cached.map(mapCachedProduct));
           setIsLoading(false);
