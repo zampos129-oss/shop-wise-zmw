@@ -248,7 +248,13 @@ const Products = () => {
 
     setSaving(true);
     try {
-      const categoryValue = await resolveCategoryValue();
+      const categoryValue = isOnline
+        ? await resolveCategoryValue()
+        : category === NEW_CAT_VALUE
+          ? (newCategory.trim() || null)
+          : category === NO_CAT_VALUE || !category
+            ? null
+            : category;
 
       const resolvedItemType = isHybrid ? itemType : isService ? "service" : "product";
       const isServiceItem = resolvedItemType === "service";
@@ -265,6 +271,41 @@ const Products = () => {
         barcode: barcode.trim() || null,
         item_type: resolvedItemType,
       };
+
+      if (!isOnline && !editing) {
+        // Save the new item on the device and queue it for upload. It is
+        // immediately sellable on the till with a temporary local id.
+        const localId = `off_prod_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        await queuePendingProduct({
+          id: localId,
+          businessId: business.id,
+          createdAt: new Date().toISOString(),
+          payload,
+        });
+        await upsertCachedProduct({
+          id: localId,
+          businessId: business.id,
+          name: payload.name,
+          price: payload.price,
+          costPrice: payload.cost_price,
+          stock: payload.stock,
+          minimumStock: payload.minimum_stock,
+          category: payload.category,
+          isActive: true,
+          taxCategory: payload.tax_category as any,
+          imageUrl: null,
+          imagePath: null,
+          parentId: null,
+          variantLabel: null,
+          ...({ itemType: payload.item_type, barcode: payload.barcode } as any),
+        } as any);
+
+        toast({ title: "Saved on this device", description: "It will upload automatically when you're back online." });
+        setOpen(false);
+        resetForm();
+        await refetch();
+        return;
+      }
 
       if (editing) {
         const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
