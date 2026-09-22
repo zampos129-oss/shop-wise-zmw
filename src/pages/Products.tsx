@@ -50,6 +50,8 @@ import {
   saveOfflineStockUpdate,
   updateCachedProductStock,
   generateOfflineId,
+  queuePendingProduct,
+  upsertCachedProduct,
 } from "@/lib/offlineStorage";
 
 const NEW_CAT_VALUE = "__new__";
@@ -968,7 +970,11 @@ const Products = () => {
                 : `Add ${itemType === "service" ? "Service" : "Product"}`}
             </DialogTitle>
             <DialogDescription>
-              {isOnline ? "" : "Connect to internet to save changes."}
+              {isOnline
+                ? ""
+                : editing
+                  ? "Connect to internet to change existing items."
+                  : "No internet — this will be saved on the device and uploaded later."}
             </DialogDescription>
           </DialogHeader>
 
