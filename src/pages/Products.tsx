@@ -218,8 +218,8 @@ const Products = () => {
       navigate("/auth");
       return;
     }
-    if (!isOnline) {
-      toast({ variant: "destructive", title: "Offline", description: "Connect to internet to edit products." });
+    if (!isOnline && editing) {
+      toast({ variant: "destructive", title: "Offline", description: "Connect to internet to edit existing items." });
       return;
     }
     if (!name.trim()) {
