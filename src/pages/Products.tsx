@@ -1141,9 +1141,9 @@ const Products = () => {
               variant="pos-accent"
               className="w-full"
               onClick={save}
-              disabled={!isOnline || saving}
+              disabled={saving || (!isOnline && !!editing)}
             >
-              {saving ? "Saving…" : "Save"}
+              {saving ? "Saving…" : !isOnline ? "Save Offline" : "Save"}
             </Button>
           </div>
         </DialogContent>
