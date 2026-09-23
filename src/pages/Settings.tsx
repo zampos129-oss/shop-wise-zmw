@@ -541,7 +541,25 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-
+          {/* Full Data Backup */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Download className="h-5 w-5" /> Full Data Backup</CardTitle>
+              <CardDescription>
+                Download one file containing everything: items, sales, payments, debtors, expenses, quotations and delivery notes.
+                Keep it safe — it can be loaded into another system so nothing is lost.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" onClick={handleFullBackup} disabled={backingUp || !business?.id}>
+                {backingUp ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Preparing your file...</>
+                ) : (
+                  <><Download className="mr-2 h-4 w-4" /> Download Full Backup</>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Receipt Printing */}
           <Card>
