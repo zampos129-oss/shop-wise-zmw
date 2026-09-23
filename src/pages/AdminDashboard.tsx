@@ -16,6 +16,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { PAYMENT_DETAILS, PRICING_TIERS } from "@/lib/paymentDetails";
 import { exportBusinessesToCsv } from "@/lib/csvExport";
+import { downloadAllBusinessesBackup } from "@/lib/fullBackup";
 import { useToast } from "@/hooks/use-toast";
 
 type BusinessRow = {
@@ -75,6 +76,7 @@ const AdminDashboard = () => {
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminChecked, setAdminChecked] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
 
   // Subscription extension state
   const [extendAmount, setExtendAmount] = useState<Record<string, number>>({});
@@ -352,6 +354,19 @@ const AdminDashboard = () => {
     toast({ title: 'Exported', description: 'Businesses data downloaded as CSV' });
   };
 
+  const handleFullBackup = async () => {
+    setBackingUp(true);
+    try {
+      const count = await downloadAllBusinessesBackup();
+      toast({ title: 'Full backup downloaded', description: `Complete data for ${count} client(s) saved to your device.` });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Could not build the backup file';
+      toast({ variant: 'destructive', title: 'Backup failed', description: message });
+    } finally {
+      setBackingUp(false);
+    }
+  };
+
   const createNotice = async () => {
     if (!user || !noticeTitle.trim() || !noticeMessage.trim()) {
       toast({ variant: "destructive", title: "Error", description: "Please fill in all fields" });
@@ -519,6 +534,10 @@ const AdminDashboard = () => {
               <Button variant="outline" size="sm" onClick={handleExportCsv} className="h-8 px-2 sm:px-3">
                 <Download className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Export CSV</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleFullBackup} disabled={backingUp} className="h-8 px-2 sm:px-3">
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{backingUp ? 'Preparing…' : 'Full Data Backup'}</span>
               </Button>
               <Button variant="outline" size="sm" onClick={refresh} className="h-8 px-2 sm:px-3">
                 Refresh

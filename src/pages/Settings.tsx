@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Mail, MapPin, Phone, Save, Loader2, Store, Briefcase, Upload, X, Image, Receipt, Hash, Landmark } from 'lucide-react';
+import { ArrowLeft, Building2, Mail, MapPin, Phone, Save, Loader2, Store, Briefcase, Upload, X, Image, Receipt, Hash, Landmark, Download } from 'lucide-react';
+import { downloadBusinessBackup } from '@/lib/fullBackup';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +29,21 @@ const Settings = () => {
   const { isLocked } = checkSubscriptionStatus();
 
   const [saving, setSaving] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
+
+  const handleFullBackup = async () => {
+    if (!business?.id) return;
+    setBackingUp(true);
+    try {
+      await downloadBusinessBackup(business.id, business.name);
+      toast({ title: 'Backup downloaded', description: 'Your complete business data was saved to this device.' });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Could not build the backup file';
+      toast({ variant: 'destructive', title: 'Backup failed', description: message });
+    } finally {
+      setBackingUp(false);
+    }
+  };
   const [businessName, setBusinessName] = useState('');
   const [tpin, setTpin] = useState('');
   const [phone, setPhone] = useState('');
@@ -541,7 +557,25 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-
+          {/* Full Data Backup */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Download className="h-5 w-5" /> Full Data Backup</CardTitle>
+              <CardDescription>
+                Download one file containing everything: items, sales, payments, debtors, expenses, quotations and delivery notes.
+                Keep it safe — it can be loaded into another system so nothing is lost.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" onClick={handleFullBackup} disabled={backingUp || !business?.id}>
+                {backingUp ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Preparing your file...</>
+                ) : (
+                  <><Download className="mr-2 h-4 w-4" /> Download Full Backup</>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Receipt Printing */}
           <Card>
