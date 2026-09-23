@@ -352,6 +352,19 @@ const AdminDashboard = () => {
     toast({ title: 'Exported', description: 'Businesses data downloaded as CSV' });
   };
 
+  const handleFullBackup = async () => {
+    setBackingUp(true);
+    try {
+      const count = await downloadAllBusinessesBackup();
+      toast({ title: 'Full backup downloaded', description: `Complete data for ${count} client(s) saved to your device.` });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Could not build the backup file';
+      toast({ variant: 'destructive', title: 'Backup failed', description: message });
+    } finally {
+      setBackingUp(false);
+    }
+  };
+
   const createNotice = async () => {
     if (!user || !noticeTitle.trim() || !noticeMessage.trim()) {
       toast({ variant: "destructive", title: "Error", description: "Please fill in all fields" });
