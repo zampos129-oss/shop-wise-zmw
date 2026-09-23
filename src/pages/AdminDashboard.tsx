@@ -535,6 +535,10 @@ const AdminDashboard = () => {
                 <Download className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Export CSV</span>
               </Button>
+              <Button variant="outline" size="sm" onClick={handleFullBackup} disabled={backingUp} className="h-8 px-2 sm:px-3">
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{backingUp ? 'Preparing…' : 'Full Data Backup'}</span>
+              </Button>
               <Button variant="outline" size="sm" onClick={refresh} className="h-8 px-2 sm:px-3">
                 Refresh
               </Button>
