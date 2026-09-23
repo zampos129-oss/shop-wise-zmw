@@ -16,6 +16,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { PAYMENT_DETAILS, PRICING_TIERS } from "@/lib/paymentDetails";
 import { exportBusinessesToCsv } from "@/lib/csvExport";
+import { downloadAllBusinessesBackup } from "@/lib/fullBackup";
 import { useToast } from "@/hooks/use-toast";
 
 type BusinessRow = {
@@ -75,6 +76,7 @@ const AdminDashboard = () => {
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminChecked, setAdminChecked] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
 
   // Subscription extension state
   const [extendAmount, setExtendAmount] = useState<Record<string, number>>({});
